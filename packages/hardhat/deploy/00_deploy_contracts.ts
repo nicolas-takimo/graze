@@ -1,6 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
 import { StableToken } from "../typechain-types"; // Importa o tipo
 
 const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -19,12 +18,12 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
     args: [],
     log: true,
   });
-  
+
   // Anexa o ABI do 'StableToken' e o Signer ao endereço deployado
   const stableToken: StableToken = await hre.ethers.getContractAt(
     "StableToken",
     stableTokenDeployment.address,
-    deployerSigner
+    deployerSigner,
   );
   console.log("✅ StableToken (aUSD) deployado em:", await stableToken.getAddress());
 
@@ -39,14 +38,11 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
   // 3. Definir Endereço do Price Feed
   // Endereço do Chainlink ETH/USD na Base Sepolia
   const priceFeedAddress = "0x4adc67696ba383f43dd60a9ea083f30304242666";
-  
+
   console.log(`ℹ️ Usando Price Feed (ETH/USD) da Base Sepolia: ${priceFeedAddress}`);
 
   // 4. Deploy VaultManager
-  const vaultManagerArgs = [
-    priceFeedAddress,
-    await stableToken.getAddress(),
-  ];
+  const vaultManagerArgs = [priceFeedAddress, await stableToken.getAddress()];
 
   const vaultManagerDeployment = await deploy("VaultManager", {
     from: deployer,
@@ -62,17 +58,19 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
 
   await deploy("AuctionManager", {
     from: deployer,
-    args: [initialFeeRecipient, initialFeeBps], 
+    args: [initialFeeRecipient, initialFeeBps],
     log: true,
   });
   console.log("✅ AuctionManager deployado.");
 
   // 6. Transferir propriedade do StableToken
-  console.log(`Transferindo propriedade do StableToken (${await stableToken.getAddress()}) para o VaultManager (${newOwnerAddress})...`);
+  console.log(
+    `Transferindo propriedade do StableToken (${await stableToken.getAddress()}) para o VaultManager (${newOwnerAddress})...`,
+  );
 
   const tx = await stableToken.transferOwnership(newOwnerAddress);
   await tx.wait(); // Espera a transação ser confirmada
-  
+
   console.log("🎉 Propriedade do StableToken transferida!");
 };
 
