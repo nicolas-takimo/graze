@@ -1,70 +1,77 @@
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
+import { StableToken } from "../typechain-types"; // Importa o tipo
 
-async function main() {
-  console.log("🚀 Starting deployment...\n");
+const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+  const { deployer } = await hre.getNamedAccounts();
+  const { deploy } = hre.deployments;
+  const { network } = hre;
 
-  const [deployer] = await ethers.getSigners();
-  console.log("👤 Deployer:", deployer.address);
+  // Converte a string 'deployer' para um objeto 'Signer'
+  const deployerSigner = await hre.ethers.getSigner(deployer);
 
-  // ===== CONFIG - use lowercase address to avoid checksum issues =====
-  // Chainlink ETH/USD feed (Base Sepolia) - lowercase to avoid checksum validation error
-  const CHAINLINK_ETH_USD_FEED = "0x2f62b8e830afcf88bf0e73c21d1397ef93da7f2e";
+  console.log(`🏃Iniciando deploy na rede ${network.name} com a conta:`, deployer);
 
-  // ===== 1) StableToken =====
-  const StableTokenFactory = await ethers.getContractFactory("StableToken");
-  const stable = await StableTokenFactory.deploy();
-  await stable.waitForDeployment();
-  const stableAddr = await stable.getAddress();
-  console.log("✅ StableToken deployed at:", stableAddr);
-
-  // ===== 2) StableSwap =====
-  // constructor(address _priceFeed, address _acceptedToken, bool _acceptNativeETH, address stableAddr)
-  const StableSwapFactory = await ethers.getContractFactory("StableSwap");
-  const swap = await StableSwapFactory.deploy(
-    CHAINLINK_ETH_USD_FEED, // price feed
-    ethers.ZeroAddress, // acceptedToken = address(0) => native ETH
-    true, // acceptNativeETH
-    stableAddr, // stable token address
+  // 1. Deploy StableToken (aUSD)
+  const stableTokenDeployment = await deploy("StableToken", {
+    from: deployer,
+    args: [],
+    log: true,
+  });
+  
+  // Anexa o ABI do 'StableToken' e o Signer ao endereço deployado
+  const stableToken: StableToken = await hre.ethers.getContractAt(
+    "StableToken",
+    stableTokenDeployment.address,
+    deployerSigner
   );
-  await swap.waitForDeployment();
-  const swapAddr = await swap.getAddress();
-  console.log("✅ StableSwap deployed at:", swapAddr);
+  console.log("✅ StableToken (aUSD) deployado em:", await stableToken.getAddress());
 
-  // Transfer ownership of StableToken -> StableSwap so it can mint/burn
-  try {
-    const tx = await stable.transferOwnership(swapAddr);
-    await tx.wait();
-    console.log("🔑 StableToken ownership transferred to StableSwap");
-  } catch (err) {
-    console.warn("⚠️ transferOwnership failed (check StableToken implementation):", err);
-  }
+  // 2. Deploy AgroAsset (AGRO)
+  await deploy("AgroAsset", {
+    from: deployer,
+    args: [],
+    log: true,
+  });
+  console.log("✅ AgroAsset (AGRO) deployado.");
 
-  // ===== 3) AgroAsset (NFT) =====
-  const AgroAssetFactory = await ethers.getContractFactory("AgroAsset");
-  const nft = await AgroAssetFactory.deploy();
-  await nft.waitForDeployment();
-  const nftAddr = await nft.getAddress();
-  console.log("✅ AgroAsset deployed at:", nftAddr);
+  // 3. Definir Endereço do Price Feed
+  // Endereço do Chainlink ETH/USD na Base Sepolia
+  const priceFeedAddress = "0x4adc67696ba383f43dd60a9ea083f30304242666";
+  
+  console.log(`ℹ️ Usando Price Feed (ETH/USD) da Base Sepolia: ${priceFeedAddress}`);
 
-  // ===== 4) AuctionManager =====
-  const AuctionFactory = await ethers.getContractFactory("AuctionManager");
-  const auction = await AuctionFactory.deploy();
-  await auction.waitForDeployment();
-  const auctionAddr = await auction.getAddress();
-  console.log("✅ AuctionManager deployed at:", auctionAddr);
+  // 4. Deploy VaultManager
+  const vaultManagerArgs = [
+    priceFeedAddress,
+    await stableToken.getAddress(),
+  ];
 
-  // ===== Summary =====
-  console.log("\n🎯 DEPLOY SUMMARY");
-  console.log("-------------------------");
-  console.log("StableToken :", stableAddr);
-  console.log("StableSwap  :", swapAddr);
-  console.log("AgroAsset   :", nftAddr);
-  console.log("AuctionMgr  :", auctionAddr);
-  console.log("-------------------------\n");
-  console.log("✅ Deployment complete!");
-}
+  const vaultManagerDeployment = await deploy("VaultManager", {
+    from: deployer,
+    args: vaultManagerArgs,
+    log: true,
+  });
+  const newOwnerAddress = vaultManagerDeployment.address;
+  console.log("✅ VaultManager deployado em:", newOwnerAddress);
 
-main().catch(error => {
-  console.error("❌ Deployment failed:", error);
-  process.exitCode = 1;
-});
+  // 5. Deploy AuctionManager
+  await deploy("AuctionManager", {
+    from: deployer,
+    args: [],
+    log: true,
+  });
+  console.log("✅ AuctionManager deployado.");
+
+  // 6. Transferir propriedade do StableToken
+  console.log(`Transferindo propriedade do StableToken (${await stableToken.getAddress()}) para o VaultManager (${newOwnerAddress})...`);
+
+  const tx = await stableToken.transferOwnership(newOwnerAddress);
+  await tx.wait(); // Espera a transação ser confirmada
+  
+  console.log("🎉 Propriedade do StableToken transferida!");
+};
+
+export default deployContracts;
+deployContracts.tags = ["All"];
