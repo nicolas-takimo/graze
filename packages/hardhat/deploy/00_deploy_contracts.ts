@@ -57,9 +57,12 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
   console.log("✅ VaultManager deployado em:", newOwnerAddress);
 
   // 5. Deploy AuctionManager
+  const initialFeeRecipient = deployer; // Ou um endereço de cofre
+  const initialFeeBps = 250; // 2.5%
+
   await deploy("AuctionManager", {
     from: deployer,
-    args: [],
+    args: [initialFeeRecipient, initialFeeBps], 
     log: true,
   });
   console.log("✅ AuctionManager deployado.");
