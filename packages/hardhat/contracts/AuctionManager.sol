@@ -21,7 +21,7 @@ contract AuctionManager is ReentrancyGuard, Ownable {
         bool usesEncrypted;
         uint256 minDeposit;
         address winner;
-        uint256 bidCount; // NOVO: rastreia se houveram lances
+        uint256 bidCount; 
     }
 
     struct EncryptedEntry {
@@ -85,7 +85,7 @@ contract AuctionManager is ReentrancyGuard, Ownable {
 
         IERC20(a.stableToken).safeTransferFrom(msg.sender, address(this), amount);
         bids[auctionId][msg.sender] += amount;
-        a.bidCount++; // NOVO
+        a.bidCount++; 
 
         emit BidPlaced(auctionId, msg.sender, bids[auctionId][msg.sender]);
     }
@@ -99,7 +99,7 @@ contract AuctionManager is ReentrancyGuard, Ownable {
 
         IERC20(a.stableToken).safeTransferFrom(msg.sender, address(this), depositAmount);
         
-        a.bidCount++; // NOVO
+        a.bidCount++; 
 
         encryptedBids[auctionId].push(EncryptedEntry({
             ciphertext: ciphertext,
@@ -140,7 +140,7 @@ contract AuctionManager is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev NOVO: Permite o vendedor cancelar e pegar o NFT de volta SE o leilão acabou E NINGUÉM deu lance.
+     * @dev: Permite o vendedor cancelar e pegar o NFT de volta SE o leilão acabou E NINGUÉM deu lance.
      */
     function cancelAuction(uint256 auctionId) external nonReentrant {
         Auction storage a = auctions[auctionId];
