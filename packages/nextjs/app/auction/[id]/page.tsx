@@ -75,11 +75,19 @@ const AuctionDetail: NextPage = () => {
   // Filtrar apenas lances da carteira conectada (lances privados)
   const myBids = useMemo(() => {
     if (!bidEvents || !connectedAddress) return [];
-    return bidEvents.filter(event => event.args.bidder?.toLowerCase() === connectedAddress.toLowerCase());
+    console.log("🔍 DEBUG - Todos os eventos:", bidEvents);
+    console.log("🔍 DEBUG - Meu endereço:", connectedAddress);
+    const filtered = bidEvents.filter(event => {
+      console.log("🔍 DEBUG - Evento bidder:", event.args.bidder);
+      return event.args.bidder?.toLowerCase() === connectedAddress.toLowerCase();
+    });
+    console.log("🔍 DEBUG - Lances filtrados:", filtered);
+    return filtered;
   }, [bidEvents, connectedAddress]);
 
   // Contar apenas meus lances
   const totalBids = myBids.length;
+  console.log("🔍 DEBUG - Total de meus lances:", totalBids);
 
   // Hooks para escrever
   const { writeContractAsync: approveToken } = useScaffoldWriteContract("StableToken");
