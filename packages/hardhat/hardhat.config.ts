@@ -49,7 +49,7 @@ const config: HardhatUserConfig = {
         url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
         enabled: process.env.MAINNET_FORKING_ENABLED === "true",
         fhevm: true,
-      },
+      } as any,
     },
     mainnet: {
       url: "https://mainnet.rpc.buidlguidl.com",
@@ -127,7 +127,7 @@ const config: HardhatUserConfig = {
       url: "https://sepolia.base.org", // URL da Base Sepolia
       accounts: [deployerPrivateKey],
       fhevm: true, 
-    },
+    } as any,
   },
   // Configuration for harhdat-verify plugin
   etherscan: {
