@@ -68,7 +68,7 @@ const AuctionDetail: NextPage = () => {
     contractName: "AuctionManager",
     eventName: "BidPlaced",
     fromBlock: 0n,
-    filters: { auctionId: BigInt(auctionId || 0) },
+    filters: { id: BigInt(auctionId || 0) },
     watch: true,
   });
 
@@ -569,10 +569,8 @@ const AuctionDetail: NextPage = () => {
                     </div>
                     <label className="label">
                       <span className="label-text-alt opacity-70">
-                        {bidAmount && parseEther(bidAmount) > (usdcBalance || 0n) ? (
+                        {bidAmount && parseEther(bidAmount) > (usdcBalance || 0n) && (
                           <span className="text-error">⚠️ Valor maior que seu saldo!</span>
-                        ) : (
-                          `Total de lances: ${displayAuction.bidCount.toString()}`
                         )}
                       </span>
                     </label>
