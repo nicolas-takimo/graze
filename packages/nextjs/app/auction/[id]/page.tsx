@@ -156,9 +156,9 @@ const AuctionDetail: NextPage = () => {
       setIsApproving(true);
       await approveToken({
         functionName: "approve",
-        args: ["0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9", parseEther("1000000")], // Approve grande valor
+        args: ["0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179", parseEther("1000000")], // AuctionManager address
       });
-      notification.success("Token aprovado com sucesso!");
+      notification.success("✅ Token aprovado! Agora você pode dar seu lance.");
     } catch (error: any) {
       console.error("Erro ao aprovar:", error);
       notification.error(error.message || "Erro ao aprovar token");
