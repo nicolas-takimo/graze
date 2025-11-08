@@ -46,6 +46,7 @@ const scaffoldConfig = {
   // The key is the chain ID, and the value is the HTTP RPC URL
   rpcOverrides: {
     [chains.hardhat.id]: "http://127.0.0.1:8545",
+    [chains.baseSepolia.id]: "https://sepolia.base.org", // RPC público da Base (sem rate limit)
   },
   // This is ours WalletConnect's default project ID.
   // You can get your own at https://cloud.walletconnect.com
