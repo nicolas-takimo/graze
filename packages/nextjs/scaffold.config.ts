@@ -46,10 +46,7 @@ const scaffoldConfig = {
   // The key is the chain ID, and the value is the HTTP RPC URL
   rpcOverrides: {
     [chains.hardhat.id]: "http://127.0.0.1:8545",
-    // Opção 1: RPC público da Base (gratuito, sem API key)
-    [chains.baseSepolia.id]: "https://sepolia.base.org",
-    // Opção 2: Infura (descomente e adicione sua API key)
-    // [chains.baseSepolia.id]: "https://base-sepolia.infura.io/v3/SUA_API_KEY_AQUI",
+    [chains.baseSepolia.id]: "https://base-sepolia.infura.io/v3/e4f18e3cdd1f4413adecb356c616a6fe", // Infura (mais rápido e confiável)
   },
   // This is ours WalletConnect's default project ID.
   // You can get your own at https://cloud.walletconnect.com
