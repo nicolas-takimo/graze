@@ -1959,7 +1959,7 @@ const deployedContracts = {
       deployedOnBlock: 33411190,
     },
     AuctionManager: {
-      address: "0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179",
+      address: "0x7058c979CeE214d2F19e560D64cB97f9Ef3ECFfB",
       abi: [
         {
           inputs: [
@@ -2433,6 +2433,19 @@ const deployedContracts = {
               name: "auctionId",
               type: "uint256",
             },
+          ],
+          name: "finalizeAuction",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "auctionId",
+              type: "uint256",
+            },
             {
               internalType: "address",
               name: "winner",
@@ -2586,7 +2599,7 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33411193,
+      deployedOnBlock: 33414910,
     },
     MockBridgeBase: {
       address: "0x35C3D23B64a923ED09825aA290ad1F93B29AcFf5",
