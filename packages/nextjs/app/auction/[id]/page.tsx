@@ -221,20 +221,6 @@ const AuctionDetail: NextPage = () => {
     try {
       setIsPlacingBid(true);
 
-      // Verificar e aprovar tokens se necessário
-      const currentAllowance = allowance || 0n;
-      if (currentAllowance < bidValue) {
-        notification.info("Aprovando tokens AUSD...");
-
-        await approveToken({
-          functionName: "approve",
-          args: ["0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179", parseEther("1000000")],
-        });
-
-        notification.success("✅ Tokens aprovados!");
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-
       // Verificar se o leilão usa lances criptografados
       if (displayAuction.encrypted) {
         // Lance criptografado usando FHE (Zama)
@@ -593,16 +579,26 @@ const AuctionDetail: NextPage = () => {
                   </div>
 
                   {needsApproval && bidAmount && (
-                    <button className="btn btn-secondary w-full" onClick={handleApprove} disabled={isApproving}>
-                      {isApproving ? (
-                        <>
-                          <span className="loading loading-spinner"></span>
-                          Aprovando...
-                        </>
-                      ) : (
-                        "1. Aprovar AUSD"
-                      )}
-                    </button>
+                    <div className="alert alert-warning">
+                      <div className="w-full">
+                        <p className="text-sm font-semibold mb-2">⚠️ Aprovação Necessária</p>
+                        <p className="text-xs mb-3">Você precisa aprovar o contrato para usar seus tokens AUSD</p>
+                        <button
+                          className="btn btn-secondary w-full btn-sm"
+                          onClick={handleApprove}
+                          disabled={isApproving}
+                        >
+                          {isApproving ? (
+                            <>
+                              <span className="loading loading-spinner loading-xs"></span>
+                              Aprovando...
+                            </>
+                          ) : (
+                            "✅ Aprovar AUSD"
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   )}
 
                   <button
@@ -621,11 +617,11 @@ const AuctionDetail: NextPage = () => {
                         Processando...
                       </>
                     ) : needsApproval ? (
-                      "2. Dar Lance"
+                      "⏳ Aguardando Aprovação"
                     ) : bidAmount && parseEther(bidAmount) > (usdcBalance || 0n) ? (
                       "❌ Saldo Insuficiente"
                     ) : (
-                      "Dar Lance"
+                      "🎯 Dar Lance"
                     )}
                   </button>
 
