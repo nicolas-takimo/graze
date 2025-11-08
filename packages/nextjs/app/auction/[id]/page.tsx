@@ -159,19 +159,26 @@ const AuctionDetail: NextPage = () => {
   };
 
   const handleMintTokens = async () => {
+    if (!ethAmount) {
+      notification.error("Digite um valor para o ETH");
+      return;
+    }
+
     try {
       setIsApproving(true);
 
-      // Depositar 10 ETH como colateral e mintar 10.000 USDC
-      // Com ETH a ~$3000, 10 ETH = $30.000 de colateral
-      // Mintando 10.000 USDC = ratio de 300% (bem acima do mínimo de 150%)
+      // Calcular USDC a mintar (50% do valor do colateral para manter ratio seguro)
+      // ETH a ~$3000, então 0.01 ETH = $30, mintamos $15 USDC
+      const ethValue = Number(ethAmount);
+      const usdcToMint = (ethValue * 3000 * 0.5).toString(); // 50% do valor
+
       await vaultMint({
         functionName: "depositAndMint",
-        args: [parseEther("10000")], // Mintar 10.000 USDC
-        value: parseEther("10"), // Depositar 10 ETH
+        args: [parseEther(usdcToMint)],
+        value: parseEther(ethAmount),
       });
 
-      notification.success("✅ 10.000 USDC mintados! Você depositou 10 ETH como colateral.");
+      notification.success(`${usdcToMint} USDC mintado com sucesso!`);
     } catch (error: any) {
       console.error("Erro ao mintar:", error);
       const errorMsg = error.message || "Erro ao mintar tokens";
