@@ -416,44 +416,53 @@ const AuctionDetail: NextPage = () => {
                 </div>
               )}
 
-              {/* Botão para finalizar leilão com lances */}
-              {hasEnded && !displayAuction.finalized && displayAuction.bidCount > 0 && !displayAuction.encrypted && (
-                <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary">
-                  <p className="text-sm font-semibold mb-2">🎯 Leilão Pronto para Finalizar</p>
-                  <p className="text-xs opacity-70 mb-3">
-                    Este leilão terminou com {Number(displayAuction.bidCount)} lance
-                    {Number(displayAuction.bidCount) > 1 ? "s" : ""}. Finalize para determinar o vencedor e transferir o
-                    NFT.
-                  </p>
-                  <button
-                    className="btn btn-primary btn-sm w-full"
-                    onClick={async () => {
-                      try {
-                        setIsApproving(true);
-                        await finalizeAuctionTx({
-                          functionName: "finalizeAuction",
-                          args: [BigInt(auctionId)],
-                        });
-                        notification.success("Leilão finalizado! Vencedor determinado.");
-                      } catch (error: any) {
-                        notification.error(error.message || "Erro ao finalizar leilão");
-                      } finally {
-                        setIsApproving(false);
-                      }
-                    }}
-                    disabled={isApproving}
-                  >
-                    {isApproving ? (
-                      <>
-                        <span className="loading loading-spinner loading-xs"></span>
-                        Finalizando...
-                      </>
-                    ) : (
-                      "🏆 Finalizar Leilão e Determinar Vencedor"
-                    )}
-                  </button>
-                </div>
-              )}
+              {/* Botão para finalizar leilão com lances - APENAS VENDEDOR */}
+              {hasEnded &&
+                !displayAuction.finalized &&
+                displayAuction.bidCount > 0 &&
+                connectedAddress?.toLowerCase() === displayAuction.seller.toLowerCase() && (
+                  <div className="mt-4 p-4 bg-success/10 rounded-lg border-2 border-success">
+                    <p className="text-sm font-semibold mb-2">💰 Finalizar e Receber Pagamento</p>
+                    <p className="text-xs opacity-70 mb-3">
+                      {displayAuction.encrypted && (
+                        <span className="block mb-2 text-warning">🔒 Leilão Privado - Os lances são confidenciais</span>
+                      )}
+                      Seu leilão terminou com {Number(displayAuction.bidCount)} lance
+                      {Number(displayAuction.bidCount) > 1 ? "s" : ""}!
+                      <br />
+                      <span className="font-semibold text-success">
+                        ✅ Clique para finalizar e receber o pagamento em sua carteira (menos taxa de 2.5%)
+                      </span>
+                    </p>
+                    <button
+                      className="btn btn-success btn-sm w-full"
+                      onClick={async () => {
+                        try {
+                          setIsApproving(true);
+                          await finalizeAuctionTx({
+                            functionName: "finalizeAuction",
+                            args: [BigInt(auctionId)],
+                          });
+                          notification.success("✅ Leilão finalizado! Pagamento transferido para sua carteira.");
+                        } catch (error: any) {
+                          notification.error(error.message || "Erro ao finalizar leilão");
+                        } finally {
+                          setIsApproving(false);
+                        }
+                      }}
+                      disabled={isApproving}
+                    >
+                      {isApproving ? (
+                        <>
+                          <span className="loading loading-spinner loading-xs"></span>
+                          Finalizando e Transferindo...
+                        </>
+                      ) : (
+                        "💰 Finalizar Leilão e Receber Pagamento"
+                      )}
+                    </button>
+                  </div>
+                )}
 
               {/* Botão para cancelar leilão sem lances */}
               {hasEnded &&

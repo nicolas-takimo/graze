@@ -187,28 +187,45 @@ contract AuctionManager is ReentrancyGuard, Ownable {
         Auction storage a = auctions[auctionId];
         require(block.timestamp >= a.biddingEnds, "bidding not ended");
         require(!a.finalized, "already finalized");
-        require(!a.usesEncrypted, "use finalizeWithProof for encrypted auctions");
+        require(msg.sender == a.seller, "Only seller can finalize");
         require(a.bidCount > 0, "No bids placed");
 
-        // Find the highest bidder
-        address[] storage bidderList = bidders[auctionId];
         address winner = address(0);
         uint256 highestBid = 0;
 
-        for (uint256 i = 0; i < bidderList.length; i++) {
-            address bidder = bidderList[i];
-            uint256 bidAmount = bids[auctionId][bidder];
-            if (bidAmount > highestBid) {
-                highestBid = bidAmount;
-                winner = bidder;
+        if (a.usesEncrypted) {
+            // Para leilões encrypted, usar o maior depósito como lance
+            EncryptedEntry[] storage encBids = encryptedBids[auctionId];
+            for (uint256 i = 0; i < encBids.length; i++) {
+                if (encBids[i].deposit > highestBid) {
+                    highestBid = encBids[i].deposit;
+                    winner = encBids[i].bidder;
+                }
             }
+            // Zerar o depósito do vencedor
+            for (uint256 i = 0; i < encBids.length; i++) {
+                if (encBids[i].bidder == winner) {
+                    encBids[i].deposit = 0;
+                    break;
+                }
+            }
+        } else {
+            // Find the highest bidder (plaintext)
+            address[] storage bidderList = bidders[auctionId];
+            for (uint256 i = 0; i < bidderList.length; i++) {
+                address bidder = bidderList[i];
+                uint256 bidAmount = bids[auctionId][bidder];
+                if (bidAmount > highestBid) {
+                    highestBid = bidAmount;
+                    winner = bidder;
+                }
+            }
+            // Deduct the winning amount from winner's deposit
+            bids[auctionId][winner] = 0;
         }
 
         require(winner != address(0), "No valid winner found");
         require(highestBid > 0, "No valid bids");
-
-        // Deduct the winning amount from winner's deposit
-        bids[auctionId][winner] = 0; // Winner gets no refund, paid full amount
 
         // --- Fee Logic ---
         uint256 fee = 0;
