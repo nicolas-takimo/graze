@@ -3579,7 +3579,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^5.3.0, @openzeppelin/contracts@npm:^5.4.0":
+"@openzeppelin/contracts@npm:^5.0.1, @openzeppelin/contracts@npm:^5.3.0, @openzeppelin/contracts@npm:^5.4.0":
   version: 5.5.0
   resolution: "@openzeppelin/contracts@npm:5.5.0"
   checksum: 77a5140be7f57190e0bae53ead7ff2f266d418ade90c2b281fddc3e812d8c26a7b4143dd290e68cf4635dcdbb147699603f0c50ea1dacec0bfba59b3ce2c75bc
@@ -4074,6 +4074,7 @@ __metadata:
     eslint-config-prettier: ~10.1.1
     eslint-plugin-prettier: ~5.2.4
     ethers: ~6.13.2
+    fhevm: ^0.6.2
     fhevmjs: latest
     hardhat: ~2.22.10
     hardhat-deploy: ^1.0.4
@@ -9984,6 +9985,17 @@ __metadata:
   dependencies:
     "@openzeppelin/contracts": ^4.9.2
   checksum: 0f1ee4307643a3381a82b7c82506720713697516d85b3221fcd69844862b87296138b3e13a766741757135493bec14e175777ba6c8a7728e9be6c39702e9ea4f
+  languageName: node
+  linkType: hard
+
+"fhevm@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "fhevm@npm:0.6.2"
+  dependencies:
+    "@openzeppelin/contracts": ^5.0.1
+    extra-bigint: ^1.1.18
+    sqlite3: ^5.1.7
+  checksum: 65502ca5d426e109f3ccf75f23a31ab90e75aba5dd02f83ed2b703334c26f9be87bbdf82c06006827b7388c596ef4694d182aeeb595d24f46cfce560cfb0e83f
   languageName: node
   linkType: hard
 

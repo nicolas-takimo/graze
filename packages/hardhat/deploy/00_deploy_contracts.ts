@@ -16,9 +16,9 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
   console.log(`🏃 Starting deploy on ${network.name} with account:`, deployer);
 
   // =================================================================
-  // --- DEPLOY NA BASE SEPOLIA (Ativos Reais, Vault, Ponte) ---
+  // --- DEPLOY NA BASE SEPOLIA OU LOCALHOST (Ativos Reais, Vault, Ponte) ---
   // =================================================================
-  if (network.name === "baseSepolia") {
+  if (network.name === "baseSepolia" || network.name === "localhost" || network.name === "hardhat") {
     console.log("🔥 Deploying to Base Sepolia...");
 
     // 1. StableToken
@@ -34,9 +34,23 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
     const agroAssetDeployment = await deploy("AgroAsset", { from: deployer, args: [], log: true });
     console.log("✅ AgroAsset (AGRO) deployed to:", agroAssetDeployment.address);
 
-    // 3. VaultManager (Usando o Price Feed REAL da Chainlink)
-    const priceFeedAddress = "0x4adc67696ba383f43dd60a9ea083f30304242666"; // Base Sepolia ETH/USD
-    console.log(`ℹ️ Using REAL Chainlink Price Feed: ${priceFeedAddress}`);
+    // 3. VaultManager (Usando o Price Feed REAL da Chainlink ou Mock para localhost)
+    let priceFeedAddress: string;
+
+    if (network.name === "localhost" || network.name === "hardhat") {
+      // Deploy MockPriceFeed para localhost
+      const mockPriceFeedDeployment = await deploy("MockPriceFeed", {
+        from: deployer,
+        args: [300000000000, 8], // $3000 com 8 decimais
+        log: true,
+      });
+      priceFeedAddress = mockPriceFeedDeployment.address;
+      console.log(`ℹ️ Using MOCK Chainlink Price Feed: ${priceFeedAddress}`);
+    } else {
+      // Base Sepolia ETH/USD
+      priceFeedAddress = "0x4adc67696ba383f43dd60a9ea083f30304242666";
+      console.log(`ℹ️ Using REAL Chainlink Price Feed: ${priceFeedAddress}`);
+    }
 
     const vaultManagerDeployment = await deploy("VaultManager", {
       from: deployer,
@@ -45,7 +59,18 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
     });
     console.log("✅ VaultManager deployed to:", vaultManagerDeployment.address);
 
-    // 4. MockBridgeBase
+    // 4. AuctionManager
+    const initialFeeRecipient = deployer;
+    const initialFeeBps = 250; // 2.5%
+
+    const auctionManagerDeployment = await deploy("AuctionManager", {
+      from: deployer,
+      args: [initialFeeRecipient, initialFeeBps],
+      log: true,
+    });
+    console.log("✅ AuctionManager deployed to:", auctionManagerDeployment.address);
+
+    // 5. MockBridgeBase
     await deploy("MockBridgeBase", {
       from: deployer,
       args: [stableTokenDeployment.address, agroAssetDeployment.address],
@@ -53,7 +78,7 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
     });
     console.log("✅ MockBridgeBase deployed.");
 
-    // 5. Transferir propriedade do StableToken
+    // 6. Transferir propriedade do StableToken
     console.log("Verificando posse do StableToken...");
     const vaultManagerAddress = vaultManagerDeployment.address;
     const currentOwner = await stableToken.owner();
@@ -64,14 +89,14 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
       const tx = await stableToken.transferOwnership(vaultManagerAddress);
       await tx.wait();
       console.log("🎉 StableToken ownership transferred to VaultManager!");
-
     } else if (currentOwner.toLowerCase() === vaultManagerAddress.toLowerCase()) {
       // 2. Se o VaultManager CORRETO JÁ É o dono, apenas avisa e pula.
       console.log("✅ StableToken ownership is already correct (VaultManager).");
-
     } else {
       // 3. Se for um dono desconhecido (acontece se o VaultManager for reimplantado)
-      console.warn(`🚨 StableToken is owned by an unknown address (${currentOwner}). Não é possível transferir a posse.`);
+      console.warn(
+        `🚨 StableToken is owned by an unknown address (${currentOwner}). Não é possível transferir a posse.`,
+      );
     }
 
     // =================================================================

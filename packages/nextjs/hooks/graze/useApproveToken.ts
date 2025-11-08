@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { parseEther } from "viem";
-import { useScaffoldWriteContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
 export const useApproveToken = (tokenContractName: "StableToken" = "StableToken") => {
@@ -8,12 +8,6 @@ export const useApproveToken = (tokenContractName: "StableToken" = "StableToken"
 
   const { writeContractAsync: approveWrite, isMining } = useScaffoldWriteContract({
     contractName: tokenContractName,
-  });
-
-  // Buscar o endereço do AuctionManager
-  const { data: auctionManagerAddress } = useScaffoldReadContract({
-    contractName: "AuctionManager",
-    functionName: "owner", // Apenas para pegar o endereço do contrato
   });
 
   const approve = async (spender: string, amount: string) => {

@@ -25,9 +25,9 @@ export const useAuctionDetails = (auctionIds: bigint[]) => {
   useEffect(() => {
     const fetchDetails = async () => {
       if (!auctionIds || auctionIds.length === 0) return;
-      
+
       setIsLoading(true);
-      
+
       // Aqui você pode fazer múltiplas chamadas para buscar cada leilão
       // Por enquanto, retornamos um array vazio
       setAuctionsData([]);

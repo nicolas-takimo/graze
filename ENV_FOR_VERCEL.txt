@@ -1,0 +1,51 @@
+# =============================================================================
+# GRAZE - Variáveis de Ambiente para VERCEL
+# =============================================================================
+# Cole estas variáveis no painel da Vercel (Settings > Environment Variables)
+
+# -----------------------------------------------------------------------------
+# WALLET CONNECT (OBRIGATÓRIO)
+# -----------------------------------------------------------------------------
+# Obtenha em: https://cloud.walletconnect.com
+NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=cole_seu_project_id_aqui
+
+# -----------------------------------------------------------------------------
+# ALCHEMY API (OBRIGATÓRIO)
+# -----------------------------------------------------------------------------
+# Obtenha em: https://dashboard.alchemyapi.io
+# Crie um app para "Base Sepolia"
+NEXT_PUBLIC_ALCHEMY_API_KEY=cole_sua_alchemy_key_aqui
+
+# -----------------------------------------------------------------------------
+# OPCIONAL - Para desenvolvimento
+# -----------------------------------------------------------------------------
+# Estas não são necessárias na Vercel, apenas para desenvolvimento local
+# PRIVATE_KEY=sua_chave_privada
+# ETHERSCAN_V2_API_KEY=sua_etherscan_key
+
+# =============================================================================
+# INSTRUÇÕES:
+# =============================================================================
+# 1. Vá para https://cloud.walletconnect.com
+#    - Crie uma conta
+#    - Crie um novo projeto
+#    - Copie o "Project ID"
+#    - Cole acima em NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID
+#
+# 2. Vá para https://dashboard.alchemyapi.io
+#    - Crie uma conta
+#    - Crie um novo app para "Base Sepolia"
+#    - Copie a "API Key"
+#    - Cole acima em NEXT_PUBLIC_ALCHEMY_API_KEY
+#
+# 3. Na Vercel:
+#    - Vá para Settings > Environment Variables
+#    - Adicione cada variável (uma por linha)
+#    - Selecione "Production", "Preview" e "Development"
+#    - Clique em "Save"
+#
+# 4. Faça redeploy:
+#    - Vá para Deployments
+#    - Clique nos três pontos do último deploy
+#    - Clique em "Redeploy"
+# =============================================================================

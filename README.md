@@ -1,11 +1,10 @@
-# 🏗 Scaffold-ETH 2
+# 🌾 Graze - Decentralized Auctions Platform
 
 <h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
+  Plataforma descentralizada para leilões de ativos agropecuários tokenizados
 </h4>
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+🚜 Graze é uma plataforma inovadora que permite a tokenização e leilão de ativos agropecuários na blockchain, trazendo transparência, segurança e eficiência para o mercado agrícola.
 
 ⚙️ Built using NextJS, RainbowKit, Hardhat, Wagmi, Viem, and Typescript.
 
@@ -27,12 +26,11 @@ Before you begin, you need to install the following tools:
 
 ## Quickstart
 
-To get started with Scaffold-ETH 2, follow the steps below:
+Para começar com o Graze, siga os passos abaixo:
 
-1. Install dependencies if it was skipped in CLI:
+1. Instale as dependências:
 
 ```
-cd my-dapp-example
 yarn install
 ```
 
@@ -67,14 +65,15 @@ Run smart contract test with `yarn hardhat:test`
 - Edit your deployment scripts in `packages/hardhat/deploy`
 
 
-## Documentation
+## Funcionalidades
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+- 🌾 **Tokenização de Ativos**: Transforme ativos agropecuários em tokens NFT
+- 🔨 **Leilões Descentralizados**: Sistema de leilões transparente e seguro na blockchain
+- 💰 **Pagamentos em Crypto**: Suporte para pagamentos em criptomoedas
+- 📊 **Rastreabilidade**: Histórico completo de propriedade e transações
+- 🔐 **Segurança**: Smart contracts auditados e seguros
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+## Tecnologias
 
-## Contributing to Scaffold-ETH 2
-
-We welcome contributions to Scaffold-ETH 2!
-
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+Built with Scaffold-ETH 2 framework using:
+- NextJS, RainbowKit, Hardhat, Wagmi, Viem, and Typescript

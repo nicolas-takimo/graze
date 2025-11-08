@@ -14,7 +14,7 @@ import {
   LockClosedIcon,
   PlusCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useDeployedContractInfo, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { notification } from "~~/utils/scaffold-eth";
 
 const CreateAsset: NextPage = () => {
@@ -32,14 +32,23 @@ const CreateAsset: NextPage = () => {
   const [location, setLocation] = useState("");
 
   // Dados do Leilão
-  const [minDeposit, setMinDeposit] = useState("");
+  const [valorAvaliado, setValorAvaliado] = useState("");
   const [duration, setDuration] = useState("24"); // horas
   const [usesEncrypted, setUsesEncrypted] = useState(false);
 
-  // Buscar endereços dos contratos
-  const { data: agroAssetContract } = useDeployedContractInfo({ contractName: "AgroAsset" });
-  const { data: stableTokenContract } = useDeployedContractInfo({ contractName: "StableToken" });
-  const { data: auctionManagerContract } = useDeployedContractInfo({ contractName: "AuctionManager" });
+  // Calcular lance mínimo (50% do valor avaliado)
+  const lanceMinimo = valorAvaliado ? (Number(valorAvaliado) * 0.5).toString() : "0";
+
+  // Endereços dos contratos (hardcoded para evitar loops)
+  const agroAssetAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+  const stableTokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+  const auctionManagerAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
+
+  // Buscar o próximo tokenId disponível
+  const { data: nextTokenId, refetch: refetchNextTokenId } = useScaffoldReadContract({
+    contractName: "AgroAsset",
+    functionName: "nextTokenId",
+  });
 
   // Hooks para escrever nos contratos
   const { writeContractAsync: mintNFT } = useScaffoldWriteContract({ contractName: "AgroAsset" });
@@ -56,16 +65,20 @@ const CreateAsset: NextPage = () => {
     try {
       setIsCreating(true);
 
+      // Buscar o tokenId que será mintado (antes de mintar)
+      await refetchNextTokenId();
+      const tokenIdToBeMinted = nextTokenId || 0n;
+
       // Mint NFT
       await mintNFT({
         functionName: "mint",
         args: [connectedAddress, assetType, BigInt(quantity), location],
       });
 
-      notification.success("NFT criado com sucesso!");
+      notification.success(`NFT criado com sucesso! Token ID: ${tokenIdToBeMinted.toString()}`);
 
-      // Simular busca do tokenId (em produção, buscar do evento)
-      setNftTokenId(0n);
+      // Setar o tokenId que foi mintado
+      setNftTokenId(tokenIdToBeMinted);
       setStep(2);
     } catch (error: any) {
       console.error("Erro ao criar NFT:", error);
@@ -77,13 +90,8 @@ const CreateAsset: NextPage = () => {
 
   // Step 2: Criar Leilão
   const handleCreateAuction = async () => {
-    if (!minDeposit || !duration || nftTokenId === null) {
+    if (!valorAvaliado || !duration || nftTokenId === null) {
       notification.error("Preencha todos os campos");
-      return;
-    }
-
-    if (!agroAssetContract?.address || !stableTokenContract?.address || !auctionManagerContract?.address) {
-      notification.error("Contratos não encontrados. Execute yarn deploy");
       return;
     }
 
@@ -93,26 +101,19 @@ const CreateAsset: NextPage = () => {
       // 1. Aprovar o AuctionManager a transferir o NFT
       await approveNFT({
         functionName: "approve",
-        args: [auctionManagerContract.address, nftTokenId],
+        args: [auctionManagerAddress, nftTokenId],
       });
 
       notification.info("NFT aprovado. Criando leilão...");
 
-      // 2. Calcular tempo de fim do leilão
+      // 2. Calcular tempo de fim do leilão e lance mínimo (50% do valor avaliado)
       const biddingEnds = BigInt(Math.floor(Date.now() / 1000) + Number(duration) * 3600);
-      const minDepositWei = parseEther(minDeposit);
+      const minDepositWei = parseEther(lanceMinimo);
 
       // 3. Criar leilão
       await createAuction({
         functionName: "createAuction",
-        args: [
-          agroAssetContract.address,
-          nftTokenId,
-          stableTokenContract.address,
-          biddingEnds,
-          usesEncrypted,
-          minDepositWei,
-        ],
+        args: [agroAssetAddress, nftTokenId, stableTokenAddress, biddingEnds, usesEncrypted, minDepositWei],
       });
 
       notification.success("Leilão criado com sucesso!");
@@ -261,8 +262,8 @@ const CreateAsset: NextPage = () => {
 
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">Depósito Mínimo (USDC)</span>
-                  <span className="label-text-alt">Lance inicial</span>
+                  <span className="label-text font-semibold">Valor Avaliado (USDC)</span>
+                  <span className="label-text-alt">Valor estimado do ativo</span>
                 </label>
                 <div className="input-group">
                   <span className="bg-base-200 px-4 flex items-center">
@@ -270,12 +271,19 @@ const CreateAsset: NextPage = () => {
                   </span>
                   <input
                     type="number"
-                    placeholder="1000"
+                    placeholder="10000"
                     className="input input-bordered w-full"
-                    value={minDeposit}
-                    onChange={e => setMinDeposit(e.target.value)}
+                    value={valorAvaliado}
+                    onChange={e => setValorAvaliado(e.target.value)}
                   />
                 </div>
+                {valorAvaliado && (
+                  <label className="label">
+                    <span className="label-text-alt text-primary font-semibold">
+                      Lance mínimo: {lanceMinimo} USDC (50% do valor avaliado)
+                    </span>
+                  </label>
+                )}
               </div>
 
               <div>
@@ -325,7 +333,7 @@ const CreateAsset: NextPage = () => {
                 <button
                   className="btn btn-primary flex-1"
                   onClick={handleCreateAuction}
-                  disabled={isCreating || !minDeposit || !duration}
+                  disabled={isCreating || !valorAvaliado || !duration}
                 >
                   {isCreating ? (
                     <>

@@ -37,8 +37,10 @@ const config: HardhatUserConfig = {
   defaultNetwork: "localhost",
   namedAccounts: {
     deployer: {
-      // By default, it will take the first Hardhat account as the deployer
+      // Use the account from PRIVATE_KEY env variable
       default: 0,
+      baseSepolia: 0,
+      zama: 0,
     },
   },
   networks: {
@@ -48,9 +50,9 @@ const config: HardhatUserConfig = {
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
         enabled: process.env.MAINNET_FORKING_ENABLED === "true",
-        fhevm: true,
       },
-    },
+      fhevm: true,
+    } as any,
     mainnet: {
       url: "https://mainnet.rpc.buidlguidl.com",
       accounts: [deployerPrivateKey],
@@ -124,10 +126,10 @@ const config: HardhatUserConfig = {
       accounts: [deployerPrivateKey],
     },
     zama: {
-      url: "https://sepolia.base.org", // URL da Base Sepolia
-      accounts: [deployerPrivateKey],
-      fhevm: true, 
-    },
+      url: "http://localhost:8545", // FHEVM local mock
+      accounts: ["0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"], // Hardhat account #0
+      fhevm: true,
+    } as any,
   },
   // Configuration for harhdat-verify plugin
   etherscan: {
