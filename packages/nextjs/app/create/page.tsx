@@ -239,25 +239,11 @@ const CreateAsset: NextPage = () => {
                 </div>
               </div>
 
-              <div className="alert alert-warning">
+              <div className="alert alert-info">
                 <div>
-                  <h4 className="font-semibold">Token ID do NFT</h4>
-                  <p className="text-sm">Verifique o Token ID do NFT recém-criado na transação anterior.</p>
-                  <p className="text-xs mt-1">Geralmente é 0 se for seu primeiro NFT, ou veja no block explorer.</p>
+                  <h4 className="font-semibold">NFT Token ID: {nftTokenId?.toString()}</h4>
+                  <p className="text-sm">Token ID gerado automaticamente pelo contrato</p>
                 </div>
-              </div>
-
-              <div>
-                <label className="label">
-                  <span className="label-text font-semibold">Token ID do NFT *</span>
-                </label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  className="input input-bordered w-full"
-                  value={nftTokenId?.toString() || ""}
-                  onChange={e => setNftTokenId(BigInt(e.target.value || "0"))}
-                />
               </div>
 
               <div>
