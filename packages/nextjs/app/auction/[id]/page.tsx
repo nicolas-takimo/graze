@@ -68,7 +68,7 @@ const AuctionDetail: NextPage = () => {
     contractName: "AuctionManager",
     eventName: "BidPlaced",
     fromBlock: 0n,
-    filters: { id: BigInt(auctionId || 0) },
+    filters: { auctionId: BigInt(auctionId || 0) },
     watch: true,
   });
 
@@ -133,7 +133,7 @@ const AuctionDetail: NextPage = () => {
 
   const hasEnded = Number(displayAuction.biddingEnds) < Date.now() / 1000;
   const isActive = !displayAuction.finalized && !hasEnded;
-  const needsApproval = allowance ? allowance < parseEther(bidAmount || "0") : true;
+  const needsApproval = bidAmount && allowance !== undefined ? allowance < parseEther(bidAmount) : false;
 
   const formatTimeRemaining = (endTime: bigint) => {
     const timeRemaining = Math.max(0, Number(endTime) - Date.now() / 1000);
