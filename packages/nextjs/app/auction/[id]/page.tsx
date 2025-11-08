@@ -81,9 +81,8 @@ const AuctionDetail: NextPage = () => {
     return bidEvents.filter(event => event.args.bidder?.toLowerCase() === connectedAddress.toLowerCase());
   }, [bidEvents, connectedAddress]);
 
-  // Contar meus lances e total geral
-  const myBidsCount = myBids.length;
-  const totalBidsCount = bidEvents?.length || 0;
+  // Contar apenas meus lances
+  const totalBids = myBids.length;
 
   // Hooks para escrever
   const { writeContractAsync: approveToken } = useScaffoldWriteContract("StableToken");
@@ -371,7 +370,7 @@ const AuctionDetail: NextPage = () => {
                 <div>
                   <p className="text-sm opacity-70">Total de Lances</p>
                   <p className="font-bold text-primary text-xl">
-                    {loadingBids ? <span className="loading loading-spinner loading-sm"></span> : totalBidsCount}
+                    {loadingBids ? <span className="loading loading-spinner loading-sm"></span> : totalBids}
                   </p>
                 </div>
               </div>
@@ -386,7 +385,7 @@ const AuctionDetail: NextPage = () => {
               {/* Botão para cancelar leilão sem lances */}
               {hasEnded &&
                 !displayAuction.finalized &&
-                totalBidsCount === 0 &&
+                totalBids === 0 &&
                 connectedAddress?.toLowerCase() === displayAuction.seller.toLowerCase() && (
                   <div className="mt-4 p-4 bg-warning/10 rounded-lg border border-warning">
                     <p className="text-sm font-semibold mb-2">⚠️ Leilão Expirado Sem Lances</p>
@@ -430,9 +429,9 @@ const AuctionDetail: NextPage = () => {
             <div className="card-body">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="card-title">Meus Lances</h3>
-                {myBidsCount > 0 && (
+                {totalBids > 0 && (
                   <span className="badge badge-primary">
-                    {myBidsCount} {myBidsCount === 1 ? "lance" : "lances"}
+                    {totalBids} {totalBids === 1 ? "lance" : "lances"}
                   </span>
                 )}
               </div>
@@ -446,7 +445,7 @@ const AuctionDetail: NextPage = () => {
                   <span className="loading loading-spinner loading-lg"></span>
                   <p className="text-sm opacity-70 mt-2">Carregando seus lances...</p>
                 </div>
-              ) : myBidsCount === 0 ? (
+              ) : totalBids === 0 ? (
                 <div className="text-center py-8 bg-base-200 rounded-lg">
                   <p className="text-sm opacity-70">Você ainda não deu nenhum lance</p>
                   <p className="text-xs opacity-50 mt-1">🔒 Lances são privados - apenas você vê seus lances</p>
