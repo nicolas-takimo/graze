@@ -1445,7 +1445,7 @@ const deployedContracts = {
   },
   84532: {
     AgroAsset: {
-      address: "0xd6a816E08f6743d80218cd29954755a5fc59FaE7",
+      address: "0xa4e197c51a1115159c01371A83605386243a3Cc0",
       abi: [
         {
           inputs: [],
@@ -1919,10 +1919,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 33408596,
+      deployedOnBlock: 33410907,
     },
     AuctionManager: {
-      address: "0x735496625A564d0535eeF6edA12eb77980517A9F",
+      address: "0x518cbd7A106F4ca90081DAcA44947C3f694e0FE1",
       abi: [
         {
           inputs: [
@@ -2549,10 +2549,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33408598,
+      deployedOnBlock: 33410943,
     },
     MockBridgeBase: {
-      address: "0xD7D1FE0a2A1B6BB22779F8C0424Cd6139566c261",
+      address: "0x477Dfa42F41343579514c6A44b36D3AbbC2dc2D7",
       abi: [
         {
           inputs: [
@@ -2792,10 +2792,163 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33408600,
+      deployedOnBlock: 33411017,
+    },
+    MockPriceFeed: {
+      address: "0xb09450B8BbDa0CaFAE98d15B6f545BCC2a977B89",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "int256",
+              name: "initialPrice",
+              type: "int256",
+            },
+            {
+              internalType: "uint8",
+              name: "decimalsValue",
+              type: "uint8",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [],
+          name: "decimals",
+          outputs: [
+            {
+              internalType: "uint8",
+              name: "",
+              type: "uint8",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "description",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "pure",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint80",
+              name: "",
+              type: "uint80",
+            },
+          ],
+          name: "getRoundData",
+          outputs: [
+            {
+              internalType: "uint80",
+              name: "roundId",
+              type: "uint80",
+            },
+            {
+              internalType: "int256",
+              name: "answer",
+              type: "int256",
+            },
+            {
+              internalType: "uint256",
+              name: "startedAt",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "updatedAt",
+              type: "uint256",
+            },
+            {
+              internalType: "uint80",
+              name: "answeredInRound",
+              type: "uint80",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "latestRoundData",
+          outputs: [
+            {
+              internalType: "uint80",
+              name: "roundId",
+              type: "uint80",
+            },
+            {
+              internalType: "int256",
+              name: "answer",
+              type: "int256",
+            },
+            {
+              internalType: "uint256",
+              name: "startedAt",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "updatedAt",
+              type: "uint256",
+            },
+            {
+              internalType: "uint80",
+              name: "answeredInRound",
+              type: "uint80",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "int256",
+              name: "newPrice",
+              type: "int256",
+            },
+          ],
+          name: "updatePrice",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "version",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "pure",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {
+        decimals: "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol",
+        description: "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol",
+        getRoundData: "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol",
+        latestRoundData: "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol",
+        version: "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol",
+      },
+      deployedOnBlock: 33410919,
     },
     StableToken: {
-      address: "0x8cEE319f762E5A340f2f2EFBbdCf657200498Dfa",
+      address: "0xc82780c3bA7E269D457b7035e3Ff58780dc6157F",
       abi: [
         {
           inputs: [],
@@ -3177,10 +3330,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33408595,
+      deployedOnBlock: 33410891,
     },
     VaultManager: {
-      address: "0xCCF3dc3aDfB31f22fd24fF3CFEf9711376699240",
+      address: "0xB0E1DF4D4f2975d08249c04798703b24686A96ba",
       abi: [
         {
           inputs: [
@@ -3526,7 +3679,7 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33408597,
+      deployedOnBlock: 33410941,
     },
   },
 } as const;

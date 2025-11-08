@@ -1,0 +1,39 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\n// solhint-disable-next-line interface-starts-with-i\ninterface AggregatorV3Interface {\n  function decimals() external view returns (uint8);\n\n  function description() external view returns (string memory);\n\n  function version() external view returns (uint256);\n\n  function getRoundData(\n    uint80 _roundId\n  ) external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);\n\n  function latestRoundData()\n    external\n    view\n    returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);\n}\n"
+    },
+    "contracts/MockPriceFeed.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\nimport \"@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol\";\n\n/**\n * @title MockPriceFeed\n * @dev Mock implementation of Chainlink Price Feed for testing\n */\ncontract MockPriceFeed is AggregatorV3Interface {\n    int256 private _price;\n    uint8 private _decimals;\n    uint80 private _roundId;\n    uint256 private _updatedAt;\n\n    constructor(int256 initialPrice, uint8 decimalsValue) {\n        _price = initialPrice;\n        _decimals = decimalsValue;\n        _roundId = 1;\n        _updatedAt = block.timestamp;\n    }\n\n    function decimals() external view override returns (uint8) {\n        return _decimals;\n    }\n\n    function description() external pure override returns (string memory) {\n        return \"Mock ETH/USD Price Feed\";\n    }\n\n    function version() external pure override returns (uint256) {\n        return 1;\n    }\n\n    function getRoundData(\n        uint80 /*_roundId*/\n    )\n        external\n        view\n        override\n        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)\n    {\n        return (_roundId, _price, _updatedAt, _updatedAt, _roundId);\n    }\n\n    function latestRoundData()\n        external\n        view\n        override\n        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)\n    {\n        return (_roundId, _price, _updatedAt, _updatedAt, _roundId);\n    }\n\n    // Admin function to update price (for testing)\n    function updatePrice(int256 newPrice) external {\n        _price = newPrice;\n        _roundId++;\n        _updatedAt = block.timestamp;\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "paris",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

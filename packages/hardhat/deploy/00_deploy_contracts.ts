@@ -34,23 +34,16 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
     const agroAssetDeployment = await deploy("AgroAsset", { from: deployer, args: [], log: true });
     console.log("✅ AgroAsset (AGRO) deployed to:", agroAssetDeployment.address);
 
-    // 3. VaultManager (Usando o Price Feed REAL da Chainlink ou Mock para localhost)
-    let priceFeedAddress: string;
-
-    if (network.name === "localhost" || network.name === "hardhat") {
-      // Deploy MockPriceFeed para localhost
-      const mockPriceFeedDeployment = await deploy("MockPriceFeed", {
-        from: deployer,
-        args: [300000000000, 8], // $3000 com 8 decimais
-        log: true,
-      });
-      priceFeedAddress = mockPriceFeedDeployment.address;
-      console.log(`ℹ️ Using MOCK Chainlink Price Feed: ${priceFeedAddress}`);
-    } else {
-      // Base Sepolia ETH/USD
-      priceFeedAddress = "0x4adc67696ba383f43dd60a9ea083f30304242666";
-      console.log(`ℹ️ Using REAL Chainlink Price Feed: ${priceFeedAddress}`);
-    }
+    // 3. VaultManager (precisa de um Price Feed)
+    // NOTA: Base Sepolia pode não ter Chainlink Price Feed ativo
+    // Usando Mock Price Feed para garantir funcionamento
+    const mockPriceFeedDeployment = await deploy("MockPriceFeed", {
+      from: deployer,
+      args: [300000000000, 8], // $3000 com 8 decimais
+      log: true,
+    });
+    const priceFeedAddress = mockPriceFeedDeployment.address;
+    console.log(`ℹ️ Using Mock Chainlink Price Feed: ${priceFeedAddress}`);
 
     const vaultManagerDeployment = await deploy("VaultManager", {
       from: deployer,
