@@ -12,7 +12,7 @@ import { useScaffoldEventHistory, useScaffoldReadContract, useScaffoldWriteContr
 import { notification } from "~~/utils/scaffold-eth";
 
 // Helper para formatar valores sem decimais quebrados
-const formatAUSDC = (value: bigint | undefined) => {
+const formatAUSD = (value: bigint | undefined) => {
   if (!value) return "0";
   const formatted = formatEther(value);
   const num = parseFloat(formatted);
@@ -35,14 +35,14 @@ const AuctionDetail: NextPage = () => {
     args: [BigInt(auctionId || 0)],
   });
 
-  // Buscar saldo de AUSDC
+  // Buscar saldo de AUSD
   const { data: usdcBalance } = useScaffoldReadContract({
     contractName: "StableToken",
     functionName: "balanceOf",
     args: connectedAddress ? [connectedAddress] : undefined,
   });
 
-  // Buscar allowance do AUSDC
+  // Buscar allowance do AUSD
   const { data: allowance } = useScaffoldReadContract({
     contractName: "StableToken",
     functionName: "allowance",
@@ -176,8 +176,8 @@ const AuctionDetail: NextPage = () => {
     try {
       setIsApproving(true);
 
-      // Calcular AUSDC a mintar (50% do valor do colateral para manter ratio seguro)
-      // ETH a ~$3000, então 0.01 ETH = $30, mintamos $15 AUSDC
+      // Calcular AUSD a mintar (50% do valor do colateral para manter ratio seguro)
+      // ETH a ~$3000, então 0.01 ETH = $30, mintamos $15 AUSD
       const ethValue = Number(ethAmount);
       const usdcToMint = (ethValue * 3000 * 0.5).toString(); // 50% do valor
 
@@ -187,7 +187,7 @@ const AuctionDetail: NextPage = () => {
         value: parseEther(ethAmount),
       });
 
-      notification.success(`${usdcToMint} AUSDC mintado com sucesso!`);
+      notification.success(`${usdcToMint} AUSD mintado com sucesso!`);
     } catch (error: any) {
       console.error("Erro ao mintar:", error);
       const errorMsg = error.message || "Erro ao mintar tokens";
@@ -213,7 +213,7 @@ const AuctionDetail: NextPage = () => {
     const currentBalance = usdcBalance || 0n;
     if (bidValue > currentBalance) {
       notification.error(
-        `❌ Saldo insuficiente!\n\nVocê tem: ${formatEther(currentBalance)} AUSDC\nLance: ${bidAmount} AUSDC\n\nConverta ETH para AUSDC primeiro`,
+        `❌ Saldo insuficiente!\n\nVocê tem: ${formatEther(currentBalance)} AUSD\nLance: ${bidAmount} AUSD\n\nConverta ETH para AUSD primeiro`,
       );
       return;
     }
@@ -224,7 +224,7 @@ const AuctionDetail: NextPage = () => {
       // Verificar e aprovar tokens se necessário
       const currentAllowance = allowance || 0n;
       if (currentAllowance < bidValue) {
-        notification.info("Aprovando tokens AUSDC...");
+        notification.info("Aprovando tokens AUSD...");
 
         await approveToken({
           functionName: "approve",
@@ -373,9 +373,9 @@ const AuctionDetail: NextPage = () => {
                 </div>
                 <div>
                   <p className="text-sm opacity-70">Valor Avaliado</p>
-                  <p className="font-bold">{formatAUSDC(displayAuction.minDeposit * 2n)} AUSDC</p>
+                  <p className="font-bold">{formatAUSD(displayAuction.minDeposit * 2n)} AUSD</p>
                   <p className="text-xs opacity-60 mt-1">
-                    Lance mínimo: {formatAUSDC(displayAuction.minDeposit)} AUSDC (50%)
+                    Lance mínimo: {formatAUSD(displayAuction.minDeposit)} AUSD (50%)
                   </p>
                 </div>
                 <div>
@@ -483,7 +483,7 @@ const AuctionDetail: NextPage = () => {
                           </div>
                           <div className="text-right">
                             <p className={`font-bold ${idx === 0 ? "text-success text-2xl" : "text-lg"}`}>
-                              {formatAUSDC(event.args.amount)} AUSDC
+                              {formatAUSD(event.args.amount)} AUSD
                             </p>
                           </div>
                         </div>
@@ -512,20 +512,20 @@ const AuctionDetail: NextPage = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {/* Saldo de AUSDC */}
+                  {/* Saldo de AUSD */}
                   <div
                     className={`card bg-base-200 shadow-sm border ${!usdcBalance || usdcBalance === 0n ? "border-warning" : "border-primary"}`}
                   >
                     <div className="card-body p-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold">Seu Saldo AUSDC:</span>
-                        <span className="text-lg font-bold">{formatAUSDC(usdcBalance)} AUSDC</span>
+                        <span className="text-sm font-semibold">Seu Saldo AUSD:</span>
+                        <span className="text-lg font-bold">{formatAUSD(usdcBalance)} AUSD</span>
                       </div>
                       {(!usdcBalance || usdcBalance === 0n) && (
                         <>
                           <div className="divider my-2"></div>
-                          <p className="text-sm font-semibold mb-2">💰 Converter ETH → AUSDC</p>
-                          <p className="text-xs opacity-70 mb-3">Deposite ETH como colateral para obter AUSDC</p>
+                          <p className="text-sm font-semibold mb-2">💰 Converter ETH → AUSD</p>
+                          <p className="text-xs opacity-70 mb-3">Deposite ETH como colateral para obter AUSD</p>
                           <div className="form-control">
                             <label className="label">
                               <span className="label-text text-xs">Quantidade de ETH</span>
@@ -551,10 +551,10 @@ const AuctionDetail: NextPage = () => {
                                 Convertendo...
                               </>
                             ) : (
-                              "Converter ETH → AUSDC"
+                              "Converter ETH → AUSD"
                             )}
                           </button>
-                          <p className="text-xs mt-2 opacity-60">💡 Ratio: 1 ETH ≈ 1,500 AUSDC (50% do valor)</p>
+                          <p className="text-xs mt-2 opacity-60">💡 Ratio: 1 ETH ≈ 1,500 AUSD (50% do valor)</p>
                         </>
                       )}
                     </div>
@@ -562,8 +562,8 @@ const AuctionDetail: NextPage = () => {
 
                   <div>
                     <label className="label">
-                      <span className="label-text font-semibold">Valor do Lance (AUSDC)</span>
-                      <span className="label-text-alt">Máx: {formatAUSDC(usdcBalance)} AUSDC</span>
+                      <span className="label-text font-semibold">Valor do Lance (AUSD)</span>
+                      <span className="label-text-alt">Máx: {formatAUSD(usdcBalance)} AUSD</span>
                     </label>
                     <div className="input-group">
                       <span className="bg-base-200 px-4 flex items-center">
@@ -573,12 +573,12 @@ const AuctionDetail: NextPage = () => {
                         type="number"
                         value={bidAmount}
                         onChange={e => setBidAmount(e.target.value)}
-                        placeholder={`Mínimo: ${formatAUSDC(displayAuction.minDeposit)}`}
+                        placeholder={`Mínimo: ${formatAUSD(displayAuction.minDeposit)}`}
                         className={`input input-bordered w-full ${
                           bidAmount && parseEther(bidAmount) > (usdcBalance || 0n) ? "input-error" : ""
                         }`}
                         min={formatEther(displayAuction.minDeposit)}
-                        max={formatAUSDC(usdcBalance)}
+                        max={formatAUSD(usdcBalance)}
                       />
                     </div>
                     <label className="label">
@@ -600,7 +600,7 @@ const AuctionDetail: NextPage = () => {
                           Aprovando...
                         </>
                       ) : (
-                        "1. Aprovar AUSDC"
+                        "1. Aprovar AUSD"
                       )}
                     </button>
                   )}
@@ -633,8 +633,8 @@ const AuctionDetail: NextPage = () => {
                     <div className="text-xs">
                       <p className="font-semibold mb-1">💡 Como funciona:</p>
                       <ul className="list-disc list-inside space-y-1 opacity-80">
-                        <li>Aprove o token AUSDC primeiro</li>
-                        <li>Dê seu lance em AUSDC</li>
+                        <li>Aprove o token AUSD primeiro</li>
+                        <li>Dê seu lance em AUSD</li>
                         <li>O maior lance vence ao final</li>
                       </ul>
                     </div>

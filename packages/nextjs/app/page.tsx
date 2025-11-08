@@ -144,7 +144,7 @@ const AuctionCard = ({ auctionId }: { auctionId: bigint }) => {
         <div className="mt-2">
           <p className="text-sm opacity-70">Lance Mínimo</p>
           <p className="text-2xl font-bold text-primary">
-            {auction.currentPrice > 0n ? formatEther(auction.currentPrice) : "0"} AUSDC
+            {auction.currentPrice > 0n ? formatEther(auction.currentPrice) : "0"} AUSD
           </p>
           <p className="text-xs opacity-50 mt-1">50% do valor avaliado</p>
         </div>

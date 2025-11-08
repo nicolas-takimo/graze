@@ -57,7 +57,7 @@ const Operations: NextPage = () => {
                 <div>
                   <h3 className="text-xl font-bold">{op.title}</h3>
                   <p className="text-sm opacity-70">Status: {op.status}</p>
-                  <p className="text-lg font-bold text-primary mt-2">{formatEther(op.currentPrice)} AUSDC</p>
+                  <p className="text-lg font-bold text-primary mt-2">{formatEther(op.currentPrice)} AUSD</p>
                 </div>
                 <Link href={`/auction/${op.auctionId}`} className="btn btn-primary">
                   Ver Leilão
