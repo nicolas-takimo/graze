@@ -66,11 +66,10 @@ const AuctionDetail: NextPage = () => {
     args: displayAuctionTemp ? [displayAuctionTemp.tokenId] : undefined,
   });
 
-  // Buscar eventos de lances (últimos 10000 blocos para evitar timeout)
+  // Buscar eventos de lances
   const { data: bidEvents, isLoading: loadingBids } = useScaffoldEventHistory({
     contractName: "AuctionManager",
     eventName: "BidPlaced",
-    fromBlock: BigInt(Math.max(0, Date.now() - 10000)), // Últimos ~10k blocos
     filters: { id: BigInt(auctionId || 0) },
     watch: true,
     blockData: true,
