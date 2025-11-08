@@ -42,27 +42,24 @@ contract VaultManager is ReentrancyGuard, Ownable {
 
     function depositAndMint(uint256 _stableToMint) external payable nonReentrant {
         Vault storage vault = vaults[msg.sender];
-        
+
         if (msg.value > 0) {
             vault.ethCollateral += msg.value;
         }
 
         if (_stableToMint > 0) {
             vault.stableDebt += _stableToMint;
-            
+
             uint256 collateralValueUSD = getCollateralValueUSD(vault.ethCollateral);
             uint256 debtValueUSD = vault.stableDebt;
             // Evita divisão por zero se o cofre estiver zerado mas tentar mintar
-            require(debtValueUSD > 0, "No debt"); 
+            require(debtValueUSD > 0, "No debt");
             uint256 collateralRatio = (collateralValueUSD * PRECISION) / debtValueUSD;
             uint256 collateralRatioBPS = (collateralRatio * BPS) / PRECISION;
 
             // Agora checa contra 150% (sua lógica)
-            require(
-                collateralRatioBPS >= MIN_COLLATERAL_RATIO_BPS,
-                "Vault health too low after mint"
-            );
-            
+            require(collateralRatioBPS >= MIN_COLLATERAL_RATIO_BPS, "Vault health too low after mint");
+
             stable.mint(msg.sender, _stableToMint);
         }
 
@@ -84,19 +81,16 @@ contract VaultManager is ReentrancyGuard, Ownable {
             vault.ethCollateral -= _ethToWithdraw;
 
             if (vault.stableDebt > 0) {
-                 uint256 collateralValueUSD = getCollateralValueUSD(vault.ethCollateral);
-                 uint256 debtValueUSD = vault.stableDebt;
-                 uint256 collateralRatio = (collateralValueUSD * PRECISION) / debtValueUSD;
-                 uint256 collateralRatioBPS = (collateralRatio * BPS) / PRECISION;
-                 
-                 // Agora checa contra 150% (sua lógica)
-                 require(
-                    collateralRatioBPS >= MIN_COLLATERAL_RATIO_BPS,
-                    "Vault health too low after withdraw"
-                 );
+                uint256 collateralValueUSD = getCollateralValueUSD(vault.ethCollateral);
+                uint256 debtValueUSD = vault.stableDebt;
+                uint256 collateralRatio = (collateralValueUSD * PRECISION) / debtValueUSD;
+                uint256 collateralRatioBPS = (collateralRatio * BPS) / PRECISION;
+
+                // Agora checa contra 150% (sua lógica)
+                require(collateralRatioBPS >= MIN_COLLATERAL_RATIO_BPS, "Vault health too low after withdraw");
             }
-        
-            (bool sent, ) = msg.sender.call{value: _ethToWithdraw}("");
+
+            (bool sent, ) = msg.sender.call{ value: _ethToWithdraw }("");
             require(sent, "ETH transfer failed");
         }
 
@@ -108,7 +102,7 @@ contract VaultManager is ReentrancyGuard, Ownable {
         uint256 stableDebt = vault.stableDebt;
 
         require(stableDebt > 0, "No debt");
-        
+
         require(getHealthFactor(_owner) <= PRECISION, "Vault not liquidatable");
 
         uint256 collateralToSeizeUSD = (stableDebt * (BPS + liquidationBonusBps)) / BPS;
@@ -120,10 +114,9 @@ contract VaultManager is ReentrancyGuard, Ownable {
         // O ETH enviado para depositAndMint é armazenado no saldo do contrato. A checagem está correta.
         require(address(this).balance >= ethToSeizeWei, "Insufficient ETH reserves in contract");
 
-
         stable.transferFrom(msg.sender, address(this), stableDebt);
         stable.burn(address(this), stableDebt);
-        (bool sent, ) = msg.sender.call{value: ethToSeizeWei}("");
+        (bool sent, ) = msg.sender.call{ value: ethToSeizeWei }("");
         require(sent, "ETH transfer failed");
 
         vault.stableDebt = 0;
@@ -137,10 +130,10 @@ contract VaultManager is ReentrancyGuard, Ownable {
 
     function getHealthFactor(address _owner) public view returns (uint256) {
         Vault memory vault = vaults[_owner];
-        if (vault.stableDebt == 0) return type(uint256).max; 
+        if (vault.stableDebt == 0) return type(uint256).max;
 
         uint256 collateralValueUSD = getCollateralValueUSD(vault.ethCollateral);
-        uint256 debtValueUSD = vault.stableDebt; 
+        uint256 debtValueUSD = vault.stableDebt;
         if (debtValueUSD == 0) return type(uint256).max;
 
         uint256 collateralRatio = (collateralValueUSD * PRECISION) / debtValueUSD;
@@ -150,7 +143,7 @@ contract VaultManager is ReentrancyGuard, Ownable {
     }
 
     function getCollateralValueUSD(uint256 _ethAmount) public view returns (uint256) {
-        uint256 ethPrice = getNormalizedPrice(); 
+        uint256 ethPrice = getNormalizedPrice();
         return (_ethAmount * ethPrice) / PRECISION;
     }
 
@@ -160,9 +153,9 @@ contract VaultManager is ReentrancyGuard, Ownable {
         uint8 d = priceFeed.decimals();
         uint256 up = uint256(p);
         if (d == 18) return up;
-        if (d < 18) return up * (10**(18 - d));
-        return up / (10**(d - 18));
+        if (d < 18) return up * (10 ** (18 - d));
+        return up / (10 ** (d - 18));
     }
-    
+
     receive() external payable {}
 }

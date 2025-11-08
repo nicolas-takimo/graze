@@ -28,6 +28,7 @@
     "@typechain/ethers-v6": "~0.5.1",
     "dotenv": "~16.4.5",
     "envfile": "~7.1.0",
+    "fhevm": "0.2.2",
     "qrcode": "~1.5.4"
   },
   "devDependencies": {
@@ -37,6 +38,7 @@
     "@nomicfoundation/hardhat-ethers": "~3.0.8",
     "@nomicfoundation/hardhat-network-helpers": "~1.0.11",
     "@nomicfoundation/hardhat-verify": "~2.0.10",
+    "@openzeppelin/contracts-confidential": "^0.1.0",
     "@typechain/ethers-v5": "~11.1.2",
     "@typechain/hardhat": "~9.1.0",
     "@types/eslint": "~9.6.1",
@@ -50,9 +52,12 @@
     "eslint-config-prettier": "~10.1.1",
     "eslint-plugin-prettier": "~5.2.4",
     "ethers": "~6.13.2",
+    "fhevm": "0.2.2",
+    "fhevm-contracts": "^0.2.4",
     "hardhat": "~2.22.10",
     "hardhat-deploy": "^1.0.4",
     "hardhat-deploy-ethers": "~0.4.2",
+    "hardhat-fhevm": "latest",
     "hardhat-gas-reporter": "~2.2.1",
     "prettier": "^3.5.3",
     "prettier-plugin-solidity": "~1.4.1",

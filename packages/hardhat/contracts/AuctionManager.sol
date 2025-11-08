@@ -22,7 +22,7 @@ contract AuctionManager is ReentrancyGuard, Ownable {
     // --- State Variables ---
 
     address public feeRecipient; // The address that receives platform fees
-    uint256 public feeBps;       // The platform fee, in basis points (e.g., 250 = 2.5%)
+    uint256 public feeBps; // The platform fee, in basis points (e.g., 250 = 2.5%)
     uint256 public constant BPS = 10_000;
 
     uint256 public nextAuction;
@@ -51,7 +51,7 @@ contract AuctionManager is ReentrancyGuard, Ownable {
     // --- Storage Mappings ---
 
     mapping(uint256 => Auction) public auctions;
-    
+
     // Plaintext bid storage
     mapping(uint256 => mapping(address => uint256)) public bids;
     mapping(uint256 => address[]) public bidders; // List for plaintext refunds
@@ -61,7 +61,14 @@ contract AuctionManager is ReentrancyGuard, Ownable {
 
     // --- Events ---
 
-    event AuctionCreated(uint256 indexed id, address seller, address nftContract, uint256 tokenId, uint64 biddingEnds, bool encrypted);
+    event AuctionCreated(
+        uint256 indexed id,
+        address seller,
+        address nftContract,
+        uint256 tokenId,
+        uint64 biddingEnds,
+        bool encrypted
+    );
     event BidPlaced(uint256 indexed id, address indexed bidder, uint256 amount);
     event EncryptedBidSubmitted(uint256 indexed id, address indexed bidder, uint256 deposit);
     event AuctionFinalized(uint256 indexed id, address winner, uint256 amount, uint256 fee);
@@ -79,7 +86,7 @@ contract AuctionManager is ReentrancyGuard, Ownable {
     constructor(address _initialFeeRecipient, uint256 _initialFeeBps) {
         require(_initialFeeRecipient != address(0), "Recipient cannot be zero address");
         require(_initialFeeBps <= 1000, "Fee too high"); // 10% cap
-        
+
         feeRecipient = _initialFeeRecipient;
         feeBps = _initialFeeBps;
     }
@@ -150,7 +157,11 @@ contract AuctionManager is ReentrancyGuard, Ownable {
      * @dev Submits an encrypted bid and a deposit (for FHE).
      * The bidder must approve the stableToken deposit.
      */
-    function submitEncryptedBid(uint256 auctionId, bytes calldata ciphertext, uint256 depositAmount) external nonReentrant {
+    function submitEncryptedBid(
+        uint256 auctionId,
+        bytes calldata ciphertext,
+        uint256 depositAmount
+    ) external nonReentrant {
         Auction storage a = auctions[auctionId];
         require(a.usesEncrypted, "auction not encrypted");
         require(block.timestamp < a.biddingEnds, "bidding closed");
@@ -159,11 +170,9 @@ contract AuctionManager is ReentrancyGuard, Ownable {
         IERC20(a.stableToken).safeTransferFrom(msg.sender, address(this), depositAmount);
         a.bidCount++;
 
-        encryptedBids[auctionId].push(EncryptedEntry({
-            ciphertext: ciphertext,
-            bidder: msg.sender,
-            deposit: depositAmount
-        }));
+        encryptedBids[auctionId].push(
+            EncryptedEntry({ ciphertext: ciphertext, bidder: msg.sender, deposit: depositAmount })
+        );
 
         emit EncryptedBidSubmitted(auctionId, msg.sender, depositAmount);
     }
@@ -174,7 +183,12 @@ contract AuctionManager is ReentrancyGuard, Ownable {
      * @dev Finalizes an auction, paying the seller and fee recipient.
      * Requires a 'proof' which, in this stub, is just an owner check.
      */
-    function finalizeWithProof(uint256 auctionId, address winner, uint256 winningAmount, bytes calldata proof) external nonReentrant {
+    function finalizeWithProof(
+        uint256 auctionId,
+        address winner,
+        uint256 winningAmount,
+        bytes calldata proof
+    ) external nonReentrant {
         Auction storage a = auctions[auctionId];
         require(block.timestamp >= a.biddingEnds, "bidding not ended");
         require(!a.finalized, "already finalized");
@@ -191,12 +205,12 @@ contract AuctionManager is ReentrancyGuard, Ownable {
             // Plaintext logic
             uint256 bidderAmount = bids[auctionId][winner];
             require(bidderAmount >= winningAmount, "winner bid insufficient");
-            
+
             // Set the winner's remaining deposit, ready for refund
-            bids[auctionId][winner] = bidderAmount - winningAmount; 
+            bids[auctionId][winner] = bidderAmount - winningAmount;
             paid = winningAmount;
         }
-        
+
         // --- Fee Logic ---
         uint256 fee = 0;
         uint256 sellerProceeds = paid;
@@ -258,7 +272,7 @@ contract AuctionManager is ReentrancyGuard, Ownable {
                 address bidder = bidders[auctionId][i];
                 // 'bids[auctionId][bidder]' holds the remaining deposit
                 uint256 amount = bids[auctionId][bidder];
-                
+
                 if (amount > 0) {
                     bids[auctionId][bidder] = 0;
                     IERC20(a.stableToken).safeTransfer(bidder, amount);
@@ -292,7 +306,12 @@ contract AuctionManager is ReentrancyGuard, Ownable {
     /**
      * @dev STUB - Centralized proof verification to be replaced by FHE.
      */
-    function verifyProof(uint256 /*auctionId*/, address /*winner*/, uint256 /*winningAmount*/, bytes calldata /*proof*/) internal view returns (bool) {
+    function verifyProof(
+        uint256 /*auctionId*/,
+        address /*winner*/,
+        uint256 /*winningAmount*/,
+        bytes calldata /*proof*/
+    ) internal view returns (bool) {
         // WARNING: This is centralized. Only the contract owner can finalize.
         // Replace with a trustless FHE or ZK proof verifier for production.
         return msg.sender == owner();

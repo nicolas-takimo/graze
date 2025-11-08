@@ -19,8 +19,12 @@ contract MockV3Aggregator is AggregatorV3Interface {
     function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
         return (1, latestAnswer, block.timestamp, block.timestamp, 1);
     }
-    function description() external pure returns (string memory) { return "Mock"; }
-    function version() external pure returns (uint256) { return 1; }
+    function description() external pure returns (string memory) {
+        return "Mock";
+    }
+    function version() external pure returns (uint256) {
+        return 1;
+    }
     // Funções set (para o teste poder mudar o preço)
     function setLatestAnswer(int256 _newAnswer) public {
         latestAnswer = _newAnswer;

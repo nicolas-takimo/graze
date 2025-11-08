@@ -1,77 +1,95 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { StableToken } from "../typechain-types"; // Importa o tipo
+import { StableToken } from "../typechain-types";
 
+/**
+ * Este script de deploy é ciente da rede.
+ * 1. 'yarn deploy --network baseSepolia' -> Implanta os contratos da Base (Vault, Ativos Reais, Ponte)
+ * 2. 'yarn deploy --network zama'       -> Implanta os contratos do Zama (Leilão FHE, Ativos Embrulhados)
+ */
 const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
   const { network } = hre;
 
-  // Converte a string 'deployer' para um objeto 'Signer'
   const deployerSigner = await hre.ethers.getSigner(deployer);
+  console.log(`🏃 Starting deploy on ${network.name} with account:`, deployer);
 
-  console.log(`🏃Iniciando deploy na rede ${network.name} com a conta:`, deployer);
+  // =================================================================
+  // --- DEPLOY NA BASE SEPOLIA (Ativos Reais, Vault, Ponte) ---
+  // =================================================================
+  if (network.name === "baseSepolia") {
+    console.log("🔥 Deploying to Base Sepolia...");
 
-  // 1. Deploy StableToken (aUSD)
-  const stableTokenDeployment = await deploy("StableToken", {
-    from: deployer,
-    args: [],
-    log: true,
-  });
+    // 1. StableToken
+    const stableTokenDeployment = await deploy("StableToken", { from: deployer, args: [], log: true });
+    console.log("✅ StableToken (aUSD) deployed to:", stableTokenDeployment.address);
+    const stableToken: StableToken = await hre.ethers.getContractAt(
+      "StableToken",
+      stableTokenDeployment.address,
+      deployerSigner,
+    );
 
-  // Anexa o ABI do 'StableToken' e o Signer ao endereço deployado
-  const stableToken: StableToken = await hre.ethers.getContractAt(
-    "StableToken",
-    stableTokenDeployment.address,
-    deployerSigner,
-  );
-  console.log("✅ StableToken (aUSD) deployado em:", await stableToken.getAddress());
+    // 2. AgroAsset
+    const agroAssetDeployment = await deploy("AgroAsset", { from: deployer, args: [], log: true });
+    console.log("✅ AgroAsset (AGRO) deployed to:", agroAssetDeployment.address);
 
-  // 2. Deploy AgroAsset (AGRO)
-  await deploy("AgroAsset", {
-    from: deployer,
-    args: [],
-    log: true,
-  });
-  console.log("✅ AgroAsset (AGRO) deployado.");
+    // 3. VaultManager (Usando o Price Feed REAL da Chainlink)
+    const priceFeedAddress = "0x4adc67696ba383f43dd60a9ea083f30304242666"; // Base Sepolia ETH/USD
+    console.log(`ℹ️ Using REAL Chainlink Price Feed: ${priceFeedAddress}`);
 
-  // 3. Definir Endereço do Price Feed
-  // Endereço do Chainlink ETH/USD na Base Sepolia
-  const priceFeedAddress = "0x4adc67696ba383f43dd60a9ea083f30304242666";
+    const vaultManagerDeployment = await deploy("VaultManager", {
+      from: deployer,
+      args: [priceFeedAddress, stableTokenDeployment.address],
+      log: true,
+    });
+    console.log("✅ VaultManager deployed to:", vaultManagerDeployment.address);
 
-  console.log(`ℹ️ Usando Price Feed (ETH/USD) da Base Sepolia: ${priceFeedAddress}`);
+    // 4. MockBridgeBase
+    await deploy("MockBridgeBase", {
+      from: deployer,
+      args: [stableTokenDeployment.address, agroAssetDeployment.address],
+      log: true,
+    });
+    console.log("✅ MockBridgeBase deployed.");
 
-  // 4. Deploy VaultManager
-  const vaultManagerArgs = [priceFeedAddress, await stableToken.getAddress()];
+    // 5. Transferir propriedade do StableToken
+    console.log(`Transferring StableToken ownership to VaultManager...`);
+    const tx = await stableToken.transferOwnership(vaultManagerDeployment.address);
+    await tx.wait();
+    console.log("🎉 StableToken ownership transferred to VaultManager!");
 
-  const vaultManagerDeployment = await deploy("VaultManager", {
-    from: deployer,
-    args: vaultManagerArgs,
-    log: true,
-  });
-  const newOwnerAddress = vaultManagerDeployment.address;
-  console.log("✅ VaultManager deployado em:", newOwnerAddress);
+    // =================================================================
+    // --- DEPLOY NO ZAMA (Leilão FHE, Ativos Embrulhados) ---
+    // =================================================================
+  } else if (network.name === "zama") {
+    console.log("🔒 Deploying to Zama Devnet...");
 
-  // 5. Deploy AuctionManager
-  const initialFeeRecipient = deployer; // Ou um endereço de cofre
-  const initialFeeBps = 250; // 2.5%
+    // 1. WStableToken (waUSD)
+    const wStableTokenDeployment = await deploy("WStableToken", { from: deployer, args: [], log: true });
+    console.log("✅ WStableToken (waUSD) deployed to:", wStableTokenDeployment.address);
 
-  await deploy("AuctionManager", {
-    from: deployer,
-    args: [initialFeeRecipient, initialFeeBps],
-    log: true,
-  });
-  console.log("✅ AuctionManager deployado.");
+    // 2. WAgroAsset (wAGRO)
+    const wAgroAssetDeployment = await deploy("WAgroAsset", { from: deployer, args: [], log: true });
+    console.log("✅ WAgroAsset (wAGRO) deployed to:", wAgroAssetDeployment.address);
 
-  // 6. Transferir propriedade do StableToken
-  console.log(
-    `Transferindo propriedade do StableToken (${await stableToken.getAddress()}) para o VaultManager (${newOwnerAddress})...`,
-  );
+    // 3. AuctionManagerFHE
+    const initialFeeRecipient = deployer; // O admin recebe as taxas
+    const initialFeeBps = 250; // 2.5%
 
-  const tx = await stableToken.transferOwnership(newOwnerAddress);
-  await tx.wait(); // Espera a transação ser confirmada
+    await deploy("AuctionManagerFHE", {
+      from: deployer,
+      args: [initialFeeRecipient, initialFeeBps],
+      log: true,
+    });
+    console.log("✅ AuctionManagerFHE deployed.");
 
-  console.log("🎉 Propriedade do StableToken transferida!");
+    // (Opcional: transferir propriedade do waUSD/wAGRO para a "ponte"
+    // mas para um hackathon, o deployer ser o 'owner' de tudo é mais fácil)
+    console.log("🎉 Zama contracts deployed! Admin (deployer) is the owner of wrapped tokens.");
+  } else {
+    console.warn(`🚨 No deploy script configured for network: ${network.name}. Skipping...`);
+  }
 };
 
 export default deployContracts;

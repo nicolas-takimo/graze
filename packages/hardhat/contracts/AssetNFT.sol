@@ -17,12 +17,7 @@ contract AgroAsset is ERC721, Ownable {
 
     constructor() ERC721("AgroAsset", "AGRO") {}
 
-    function mint(
-        address to,
-        string memory assetType,
-        uint256 quantity,
-        string memory location
-    ) external onlyOwner {
+    function mint(address to, string memory assetType, uint256 quantity, string memory location) external onlyOwner {
         uint256 tokenId = nextTokenId++;
         _safeMint(to, tokenId);
         assetInfo[tokenId] = AssetMetadata(assetType, quantity, location);
