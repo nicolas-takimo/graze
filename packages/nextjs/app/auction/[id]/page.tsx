@@ -205,17 +205,22 @@ const AuctionDetail: NextPage = () => {
     const currentBalance = usdcBalance || 0n;
     if (bidValue > currentBalance) {
       notification.error(
-        `❌ Saldo insuficiente!\n\nVocê tem: ${formatEther(currentBalance)} USDC\nLance: ${bidAmount} USDC\n\n${
-          currentBalance === 0n
-            ? "Clique em '💰 Depositar 10 ETH → Obter 10.000 USDC' para obter tokens"
-            : "Reduza o valor do lance ou deposite mais ETH no VaultManager"
-        }`,
+        `❌ Saldo insuficiente!\n\nVocê tem: ${formatEther(currentBalance)} USDC\nLance: ${bidAmount} USDC\n\nConverta ETH para USDC primeiro`,
       );
       return;
     }
 
     try {
       setIsPlacingBid(true);
+
+      // Verificar se o leilão usa lances criptografados
+      if (displayAuction.encrypted) {
+        notification.error(
+          "❌ Este leilão usa lances criptografados (FHE).\n\nEssa funcionalidade requer a rede Zama e não está disponível na Base Sepolia.",
+        );
+        return;
+      }
+
       await placeBidTx({
         functionName: "placeBid",
         args: [BigInt(auctionId), bidValue],
@@ -475,19 +480,26 @@ const AuctionDetail: NextPage = () => {
               ) : (
                 <div className="space-y-4">
                   {/* Saldo de USDC */}
-                  <div className={`alert ${!usdcBalance || usdcBalance === 0n ? "alert-warning" : "alert-info"}`}>
-                    <div className="w-full">
+                  <div
+                    className={`card bg-base-200 shadow-sm border ${!usdcBalance || usdcBalance === 0n ? "border-warning" : "border-primary"}`}
+                  >
+                    <div className="card-body p-4">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-semibold">Seu Saldo USDC:</span>
                         <span className="text-lg font-bold">{usdcBalance ? formatEther(usdcBalance) : "0"} USDC</span>
                       </div>
                       {(!usdcBalance || usdcBalance === 0n) && (
                         <>
-                          <p className="text-xs mt-2 opacity-80">⚠️ Você precisa de tokens USDC para dar lances</p>
-                          <div className="mt-2">
+                          <div className="divider my-2"></div>
+                          <p className="text-sm font-semibold mb-2">💰 Converter ETH → USDC</p>
+                          <p className="text-xs opacity-70 mb-3">Deposite ETH como colateral para obter USDC</p>
+                          <div className="form-control">
+                            <label className="label">
+                              <span className="label-text text-xs">Quantidade de ETH</span>
+                            </label>
                             <input
                               type="number"
-                              placeholder="Quantidade de ETH (ex: 0.01)"
+                              placeholder="Ex: 0.01"
                               className="input input-bordered input-sm w-full"
                               value={ethAmount}
                               onChange={e => setEthAmount(e.target.value)}
@@ -496,22 +508,20 @@ const AuctionDetail: NextPage = () => {
                             />
                           </div>
                           <button
-                            className="btn btn-sm btn-primary w-full mt-2"
+                            className="btn btn-sm btn-primary w-full mt-3"
                             onClick={handleMintTokens}
                             disabled={isApproving || !ethAmount}
                           >
                             {isApproving ? (
                               <>
                                 <span className="loading loading-spinner loading-xs"></span>
-                                Mintando...
+                                Convertendo...
                               </>
                             ) : (
-                              "💰 Depositar ETH → Obter USDC"
+                              "Converter ETH → USDC"
                             )}
                           </button>
-                          <p className="text-xs mt-2 opacity-60">
-                            💡 Você depositará ETH como colateral no VaultManager para mintar USDC
-                          </p>
+                          <p className="text-xs mt-2 opacity-60">💡 Ratio: 1 ETH ≈ 1,500 USDC (50% do valor)</p>
                         </>
                       )}
                     </div>
