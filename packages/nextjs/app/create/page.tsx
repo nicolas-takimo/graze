@@ -42,7 +42,7 @@ const CreateAsset: NextPage = () => {
   // Endereços dos contratos Base Sepolia
   const agroAssetAddress = "0xAC704c2fA97b332F5CD6b14a3DE8d1b65a06B5e4";
   const stableTokenAddress = "0xd3429C2E46a853Ce99cB27688345FcB41C19B12A";
-  const auctionManagerAddress = "0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179";
+  const auctionManagerAddress = "0x7058c979CeE214d2F19e560D64cB97f9Ef3ECFfB";
 
   // Buscar o próximo tokenId disponível
   const { data: nextTokenId, refetch: refetchNextTokenId } = useScaffoldReadContract({

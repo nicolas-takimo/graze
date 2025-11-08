@@ -49,7 +49,7 @@ const AuctionDetail: NextPage = () => {
   const { data: allowance } = useScaffoldReadContract({
     contractName: "StableToken",
     functionName: "allowance",
-    args: connectedAddress ? [connectedAddress, "0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179"] : undefined,
+    args: connectedAddress ? [connectedAddress, "0x7058c979CeE214d2F19e560D64cB97f9Ef3ECFfB"] : undefined,
   });
 
   // Buscar metadados do NFT
@@ -172,7 +172,7 @@ const AuctionDetail: NextPage = () => {
       setIsApproving(true);
       await approveToken({
         functionName: "approve",
-        args: ["0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179", parseEther("1000000")], // AuctionManager address
+        args: ["0x7058c979CeE214d2F19e560D64cB97f9Ef3ECFfB", parseEther("1000000")], // AuctionManager address
       });
       notification.success("✅ Token aprovado! Agora você pode dar seu lance.");
     } catch (error: any) {
