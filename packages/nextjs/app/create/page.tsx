@@ -104,7 +104,12 @@ const CreateAsset: NextPage = () => {
         args: [auctionManagerAddress, nftTokenId],
       });
 
-      notification.info("NFT aprovado. Criando leilão...");
+      notification.info("NFT aprovado. Aguardando confirmação...");
+
+      // Aguardar um pouco para a transação ser confirmada
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      notification.info("Criando leilão...");
 
       // 2. Calcular tempo de fim do leilão e lance mínimo (50% do valor avaliado)
       const biddingEnds = BigInt(Math.floor(Date.now() / 1000) + Number(duration) * 3600);
