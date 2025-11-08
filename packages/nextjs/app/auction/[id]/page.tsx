@@ -46,7 +46,7 @@ const AuctionDetail: NextPage = () => {
   const { data: allowance } = useScaffoldReadContract({
     contractName: "StableToken",
     functionName: "allowance",
-    args: connectedAddress ? [connectedAddress, "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"] : undefined,
+    args: connectedAddress ? [connectedAddress, "0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179"] : undefined,
   });
 
   // Buscar metadados do NFT
