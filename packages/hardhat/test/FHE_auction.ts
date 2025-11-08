@@ -4,131 +4,181 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 
 // --- FHE Imports ---
-import { FhevmInstance, createInstance } from "fhevmjs";
+import { FhevmInstance, createInstance } from "fhevmjs"; 
 
-import { WStableToken, WAgroAsset, AuctionManagerFHE } from "../typechain-types";
+import {
+    WStableToken,
+    WAgroAsset,
+    AuctionManagerFHE,
+} from "../typechain-types";
 
-// Helper para criptografar
-async function encryptBid(amount: number, fhevm: FhevmInstance) {
-  // O 'fhevm' injetado pelo Hardhat tem o 'encrypt32'
-  return fhevm.encrypt32(amount);
+async function decryptAndGenerateProof(
+    auctionId: number,
+    auctionManager: AuctionManagerFHE,
+    fhevm: FhevmInstance
+) {
+    const auction = await auctionManager.auctions(auctionId);
+    
+    // 1. Pega os "handles" criptografados que o contrato armazenou
+    const highestBidHandle = auction.highestBid;
+    const winnerIndexHandle = auction.winnerIndex;
+
+    // 2. Descriptografa eles (só o fhevmjs pode fazer isso no teste)
+    const winningAmount = fhevm.decrypt(highestBidHandle);
+    const winnerIndex = fhevm.decrypt(winnerIndexHandle);
+
+    // 3. Prepara os dados para o callback
+    const handles = [highestBidHandle, winnerIndexHandle];
+    const decrypted = [winningAmount, winnerIndex];
+    const encodedData = ethers.AbiCoder.defaultAbiCoder().encode(
+        ["uint256", "uint256"],
+        decrypted
+    );
+    
+    // 4. Gera a prova de descriptografia (como se o KMS fizesse)
+    const proof = await fhevm.getSignature(handles, decrypted);
+
+    return {
+        encodedData,
+        proof,
+    };
 }
 
-describe("FHE Auction System (Zama Logic)", function () {
-  let alice: HardhatEthersSigner; // Vendedora
-  let bob: HardhatEthersSigner; // Comprador 1 (Perdedor)
-  let carlos: HardhatEthersSigner; // Comprador 2 (Vencedor)
-  let treasury: HardhatEthersSigner; // Tesouraria
 
-  let wStableToken: WStableToken;
-  let wAgroAsset: WAgroAsset;
-  let auctionManager: AuctionManagerFHE;
+describe("FHE Auction System (Zama Logic - API NOVA)", function () {
+    let alice: HardhatEthersSigner; 
+    let bob: HardhatEthersSigner;
+    let carlos: HardhatEthersSigner;
+    let treasury: HardhatEthersSigner;
 
-  let fhevm: FhevmInstance;
+    let wStableToken: WStableToken;
+    let wAgroAsset: WAgroAsset;
+    let auctionManager: AuctionManagerFHE;
 
-  const oneEther = ethers.parseEther("1.0");
-  const aUSD_100 = ethers.parseEther("100");
-  const aUSD_500 = ethers.parseEther("500");
+    let fhevm: FhevmInstance;
 
-  beforeEach(async function () {
-    [alice, bob, carlos, treasury] = await ethers.getSigners();
+    const aUSD_100 = ethers.parseEther("100");
+    const aUSD_500 = ethers.parseEther("500");
 
-    // 1. Deploy Contratos da Rede Zama (Mocks)
-    const WStableTokenFactory = await ethers.getContractFactory("WStableToken");
-    wStableToken = await WStableTokenFactory.connect(alice).deploy();
+    beforeEach(async function () {
+        [alice, bob, carlos, treasury] = await ethers.getSigners();
 
-    const WAgroAssetFactory = await ethers.getContractFactory("WAgroAsset");
-    wAgroAsset = await WAgroAssetFactory.connect(alice).deploy();
+        const WStableTokenFactory = await ethers.getContractFactory("WStableToken");
+        wStableToken = await WStableTokenFactory.connect(alice).deploy();
 
-    // 2. Deploy FHE AuctionManager
-    const AuctionManagerFactory = await ethers.getContractFactory("AuctionManagerFHE");
-    auctionManager = await AuctionManagerFactory.connect(alice).deploy(
-      treasury.address,
-      250, // 2.5% fee
-    );
+        const WAgroAssetFactory = await ethers.getContractFactory("WAgroAsset");
+        wAgroAsset = await WAgroAssetFactory.connect(alice).deploy();
 
-    // 3. FHE Setup
-    const fhevmImport = await import("fhevmjs");
-    const FhevmInstance = fhevmImport.FhevmInstance;
-    const createInstance = fhevmImport.createInstance;
-
-    const ret = await ethers.provider.call({
-      to: "0x00000000000000000000000000000000000000F0",
-      data: "0x4edff33c",
+        const AuctionManagerFactory = await ethers.getContractFactory("AuctionManagerFHE");
+        auctionManager = await AuctionManagerFactory.connect(alice).deploy(
+            treasury.address,
+            250 // 2.5% fee
+        );
+        
+        const fhevmImport = await import("fhevmjs");
+        const createInstance = fhevmImport.createInstance;
+        
+        const ret = await ethers.provider.call({
+            to: "0x00000000000000000000000000000000000000F0",
+            data: "0x4edff33c",
+        });
+        const publicKey = ethers.hexlify(ret);
+        
+        fhevm = await createInstance({ 
+            chainId: (await ethers.provider.getNetwork()).chainId, 
+            publicKey 
+        });
     });
-    const publicKey = ethers.hexlify(ret);
 
-    fhevm = await createInstance({
-      chainId: (await ethers.provider.getNetwork()).chainId,
-      publicKey,
+
+    it("Should run a full FHE auction, find winner, request decryption, fulfill, and refund", async function () {
+        const tokenId = 0;
+        
+        // --- Setup ---
+        await wAgroAsset.connect(alice).mint(alice.address, tokenId, "Soja", 100, "Local");
+        await wAgroAsset.connect(alice).approve(await auctionManager.getAddress(), tokenId);
+        
+        const biddingEnds = (await time.latest()) + 3600;
+        await auctionManager.connect(alice).createAuction(
+            await wAgroAsset.getAddress(),
+            tokenId,
+            await wStableToken.getAddress(),
+            biddingEnds,
+            100 // minDeposit (plaintext)
+        );
+        
+        await wStableToken.connect(alice).mint(bob.address, aUSD_500);
+        await wStableToken.connect(alice).mint(carlos.address, aUSD_500);
+
+        // --- Bidding (Encrypted) - CORRIGIDO ---
+        
+        // 4. Bob (perdedor) faz lance de 100
+        const bobBidAmount = 100;
+        const bobDeposit = aUSD_100;
+        const bobInput = await fhevm.getEncryptedInput(
+            await auctionManager.getAddress(),
+            auctionManager.interface.getFunction("submitEncryptedBid").selector
+        );
+        const encryptedBobBid = bobInput.encrypt32(bobBidAmount);
+        await wStableToken.connect(bob).approve(await auctionManager.getAddress(), bobDeposit);
+        await auctionManager.connect(bob).submitEncryptedBid(
+            0,
+            encryptedBobBid.handle,
+            encryptedBobBid.proof,
+            bobDeposit
+        );
+
+        // 5. Carlos (vencedor) faz lance de 200
+        const carlosBidAmount = 200;
+        const carlosDeposit = ethers.parseEther("200");
+        const carlosInput = await fhevm.getEncryptedInput(
+            await auctionManager.getAddress(),
+            auctionManager.interface.getFunction("submitEncryptedBid").selector
+        );
+        const encryptedCarlosBid = carlosInput.encrypt32(carlosBidAmount);
+        await wStableToken.connect(carlos).approve(await auctionManager.getAddress(), carlosDeposit);
+        await auctionManager.connect(carlos).submitEncryptedBid(
+            0,
+            encryptedCarlosBid.handle,
+            encryptedCarlosBid.proof,
+            carlosDeposit
+        );
+
+        // --- Finalization (Parte 1: Requisição) ---
+        await time.increase(3601);
+        
+        // Esta chamada NÃO descriptografa, ela apenas emite o evento DecryptionRequested
+        await auctionManager.connect(alice).finalizeAuction(0);
+        expect((await auctionManager.auctions(0)).status).to.equal(1); // 1 = AwaitingDecryption
+
+        // --- Finalization (Parte 2: Simulação do Relayer) ---
+        
+        // O teste agora descriptografa os valores e gera a prova
+        const { encodedData, proof } = await decryptAndGenerateProof(0, auctionManager, fhevm);
+
+        // O teste chama o fulfillAuction com os dados descriptografados
+        // (Qualquer um pode chamar, mas em produção seria um relayer)
+        await auctionManager.connect(alice).fulfillAuction(0, encodedData, proof.signature);
+
+        // --- Verifications ---
+        const winningAmount = ethers.parseEther("200");
+        const feeBps = 250n;
+        const expectedFee = (winningAmount * feeBps) / 10000n; // 5 aUSD
+        const expectedSellerProceeds = winningAmount - expectedFee; // 195 aUSD
+
+        expect((await auctionManager.auctions(0)).status).to.equal(2); // 2 = Closed
+        expect(await wAgroAsset.ownerOf(tokenId)).to.equal(carlos.address);
+        expect(await wStableToken.balanceOf(alice.address)).to.equal(expectedSellerProceeds);
+        expect(await wStableToken.balanceOf(treasury.address)).to.equal(expectedFee);
+        
+        // Depósito do Bob (100) ainda está lá. Depósito de Carlos foi usado.
+        expect(await wStableToken.balanceOf(await auctionManager.getAddress())).to.equal(aUSD_100);
+        
+        // --- Refund ---
+        await auctionManager.connect(alice).refundLosers(0);
+        
+        expect(await wStableToken.balanceOf(await auctionManager.getAddress())).to.equal(0);
+        expect(await wStableToken.balanceOf(bob.address)).to.equal(aUSD_500);
+        expect(await wStableToken.balanceOf(carlos.address)).to.equal(ethers.parseEther("300"));
     });
-  });
-
-  it("Should run a full FHE auction, find winner privately, pay fee, and refund losers", async function () {
-    const tokenId = 0;
-
-    // --- Setup ---
-    // 1. Alice (vendedora) "recebe" seu WAgroAsset da ponte
-    // (No teste, ela mesma minta)
-    await wAgroAsset.connect(alice).mint(alice.address, tokenId, "Soja", 100, "Local");
-
-    // 2. Alice cria o leilão
-    await wAgroAsset.connect(alice).approve(await auctionManager.getAddress(), tokenId);
-    const biddingEnds = (await time.latest()) + 3600;
-    await auctionManager.connect(alice).createAuction(
-      await wAgroAsset.getAddress(),
-      tokenId,
-      await wStableToken.getAddress(),
-      biddingEnds,
-      100, // minDeposit (plaintext)
-    );
-
-    // 3. Bob e Carlos "recebem" seu WStableToken da ponte
-    await wStableToken.connect(alice).mint(bob.address, aUSD_500);
-    await wStableToken.connect(alice).mint(carlos.address, aUSD_500);
-
-    // --- Bidding (Encrypted) ---
-    // 4. Bob (perdedor) faz lance de 100
-    const bobBidAmount = 100;
-    const bobDeposit = aUSD_100;
-    const encryptedBobBid = await encryptBid(bobBidAmount, fhevm);
-    await wStableToken.connect(bob).approve(await auctionManager.getAddress(), bobDeposit);
-    await auctionManager.connect(bob).submitEncryptedBid(0, encryptedBobBid, bobDeposit);
-
-    // 5. Carlos (vencedor) faz lance de 200
-    const carlosBidAmount = 200;
-    const carlosDeposit = ethers.parseEther("200");
-    const encryptedCarlosBid = await encryptBid(carlosBidAmount, fhevm);
-    await wStableToken.connect(carlos).approve(await auctionManager.getAddress(), carlosDeposit);
-    await auctionManager.connect(carlos).submitEncryptedBid(0, encryptedCarlosBid, carlosDeposit);
-
-    // --- Finalization (Public) ---
-    await time.increase(3601);
-    await auctionManager.connect(alice).finalizeAuction(0);
-
-    // --- Verifications ---
-    const winningAmount = ethers.parseEther("200");
-    const feeBps = 250n;
-    const expectedFee = (winningAmount * feeBps) / 10000n; // 5 aUSD
-    const expectedSellerProceeds = winningAmount - expectedFee; // 195 aUSD
-
-    // 1. Carlos (vencedor) tem o NFT
-    expect(await wAgroAsset.ownerOf(tokenId)).to.equal(carlos.address);
-    // 2. Alice (vendedora) recebeu o valor líquido
-    expect(await wStableToken.balanceOf(alice.address)).to.equal(expectedSellerProceeds);
-    // 3. Treasury (tesouraria) recebeu a taxa
-    expect(await wStableToken.balanceOf(treasury.address)).to.equal(expectedFee);
-    // 4. Dinheiro de Bob (perdedor) está preso
-    expect(await wStableToken.balanceOf(await auctionManager.getAddress())).to.equal(aUSD_100);
-
-    // --- Refund ---
-    await auctionManager.connect(alice).refundLosers(0);
-
-    // 5. Contrato está vazio
-    expect(await wStableToken.balanceOf(await auctionManager.getAddress())).to.equal(0);
-    // 6. Bob (perdedor) foi reembolsado
-    expect(await wStableToken.balanceOf(bob.address)).to.equal(aUSD_500);
-    // 7. Carlos (vencedor) gastou seus 200
-    expect(await wStableToken.balanceOf(carlos.address)).to.equal(ethers.parseEther("300"));
-  });
 });

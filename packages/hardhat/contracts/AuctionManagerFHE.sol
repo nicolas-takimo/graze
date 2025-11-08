@@ -7,176 +7,231 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-// --- FHE ---
-import "fhevm/lib/FHE.sol"; 
+// --- FHE Import ---
+import "@fhevm/solidity/lib/FHE.sol"; 
 
 contract AuctionManagerFHE is ReentrancyGuard, Ownable {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20;
 
-    address public feeRecipient;
-    uint256 public feeBps;
-    uint256 public constant BPS = 10_000;
-    uint256 public nextAuction;
+    address public feeRecipient;
+    uint256 public feeBps;
+    uint256 public constant BPS = 10_000;
+    uint256 public nextAuction;
 
-    struct Auction {
-        address seller;
-        address nftContract;
-        uint256 tokenId;
-        address stableToken;
-        uint64 biddingEnds;
-        bool finalized;
-        uint256 minDeposit;
-    }
+    enum AuctionStatus { Open, AwaitingDecryption, Closed }
 
-    struct EncryptedBid {
-        address bidder;
-        euint32 encryptedAmount;
-        uint256 deposit;
-    }
+    struct Auction {
+        address seller;
+        address nftContract;
+        uint256 tokenId;
+        address stableToken;
+        uint64 biddingEnds;
+        AuctionStatus status; // <- Mudança de bool para enum
+        uint256 minDeposit;
+        // Campos para armazenar os resultados criptografados
+        euint32 highestBid;
+        euint256 winnerIndex;
+    }
 
-    mapping(uint256 => Auction) public auctions;
-    mapping(uint256 => EncryptedBid[]) public auctionBids;
+    struct EncryptedBid {
+        address bidder;
+        euint32 encryptedAmount;
+        uint256 deposit;
+    }
 
-    event AuctionCreated(uint256 indexed id, address seller, address nftContract, uint256 tokenId, uint64 biddingEnds);
-    event EncryptedBidSubmitted(uint256 indexed id, address indexed bidder, uint256 deposit);
-    event AuctionFinalized(uint256 indexed id, address winner, uint256 amount, uint256 fee);
-    event AuctionCancelled(uint256 indexed id);
-    event RefundIssued(uint256 indexed id, address indexed to, uint256 amount);
-    event FeeRecipientChanged(address newRecipient);
-    event FeeBpsChanged(uint256 newFeeBps);
+    mapping(uint256 => Auction) public auctions;
+    mapping(uint256 => EncryptedBid[]) public auctionBids;
 
-    constructor(address _initialFeeRecipient, uint256 _initialFeeBps) {
-        require(_initialFeeRecipient != address(0), "Recipient cannot be zero address");
-        require(_initialFeeBps <= 1000, "Fee too high");
-        feeRecipient = _initialFeeRecipient;
-        feeBps = _initialFeeBps;
-    }
+    // --- Eventos ---
+    event AuctionCreated(uint256 indexed id, address seller, address nftContract, uint256 tokenId, uint64 biddingEnds);
+    event EncryptedBidSubmitted(uint256 indexed id, address indexed bidder, uint256 deposit);
+    // Evento para o relayer ouvir
+    event DecryptionRequested(uint256 indexed auctionId, bytes32 highestBidHandle, bytes32 winnerIndexHandle);
+    event AuctionFinalized(uint256 indexed id, address winner, uint256 amount, uint256 fee);
+    event AuctionCancelled(uint256 indexed id);
+    event RefundIssued(uint256 indexed id, address indexed to, uint256 amount);
+    event FeeRecipientChanged(address newRecipient);
+    event FeeBpsChanged(uint256 newFeeBps);
 
-    function createAuction(
-        address nftContract,
-        uint256 tokenId,
-        address stableToken,
-        uint64 biddingEnds,
-        uint256 minDeposit
-    ) external nonReentrant returns (uint256) {
-        require(biddingEnds > block.timestamp, "end must be future");
-        uint256 id = nextAuction++;
-        auctions[id] = Auction(
-            msg.sender,
-            nftContract,
-            tokenId,
-            stableToken,
-            biddingEnds,
-            false,
-            minDeposit
-        );
-        IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
-        emit AuctionCreated(id, msg.sender, nftContract, tokenId, biddingEnds);
-        return id;
-    }
 
-    // CORRIGIDO PARA A API ANTIGA
-    function submitEncryptedBid(uint256 auctionId, bytes calldata ciphertext, uint256 depositAmount) external nonReentrant {
-        Auction storage a = auctions[auctionId];
-        require(block.timestamp < a.biddingEnds, "bidding closed");
-        require(depositAmount >= a.minDeposit, "deposit too small");
+    constructor(address _initialFeeRecipient, uint256 _initialFeeBps) {
+        require(_initialFeeRecipient != address(0), "Recipient cannot be zero address");
+        require(_initialFeeBps <= 1000, "Fee too high");
+        feeRecipient = _initialFeeRecipient;
+        feeBps = _initialFeeBps;
+    }
 
-        IERC20(a.stableToken).safeTransferFrom(msg.sender, address(this), depositAmount);
-        
-        // FHE.asEencrypted é a função correta na API ANTIGA
-        euint32 encryptedBid = FHE.asEencrypted(ciphertext);
-        
-        auctionBids[auctionId].push(EncryptedBid({
-            bidder: msg.sender,
-            encryptedAmount: encryptedBid,
-            deposit: depositAmount
-        }));
-        emit EncryptedBidSubmitted(auctionId, msg.sender, depositAmount);
-    }
+    function createAuction(
+        address nftContract,
+        uint256 tokenId,
+        address stableToken,
+        uint64 biddingEnds,
+        uint256 minDeposit
+    ) external nonReentrant returns (uint256) {
+        require(biddingEnds > block.timestamp, "end must be future");
+        uint256 id = nextAuction++;
+        auctions[id] = Auction(
+            msg.sender,
+            nftContract,
+            tokenId,
+            stableToken,
+            biddingEnds,
+            AuctionStatus.Open, // <- Mudança
+            minDeposit,
+            FHE.asEuint32(0), // Inicializa highestBid
+            FHE.asEuint256(0) // Inicializa winnerIndex
+        );
+        IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
+        emit AuctionCreated(id, msg.sender, nftContract, tokenId, biddingEnds);
+        return id;
+    }
 
-    // CORRIGIDO PARA A API ANTIGA
-    function finalizeAuction(uint256 auctionId) external nonReentrant {
-        Auction storage a = auctions[auctionId];
-        require(block.timestamp >= a.biddingEnds, "bidding not ended");
-        require(!a.finalized, "already finalized");
-        EncryptedBid[] storage bids = auctionBids[auctionId];
-        uint256 bidCount = bids.length;
-        require(bidCount > 0, "No bids placed");
+    // --- CORRIGIDO PARA A API NOVA (FHE.fromExternal) ---
+    function submitEncryptedBid(
+        uint256 auctionId,
+        externalEuint32 bidHandle, // O "handle" do ciphertext
+        bytes calldata bidProof,  // A prova
+        uint256 depositAmount
+    ) external nonReentrant {
+        Auction storage a = auctions[auctionId];
+        require(a.status == AuctionStatus.Open, "Auction not open");
+        require(block.timestamp < a.biddingEnds, "bidding closed");
+        require(depositAmount >= a.minDeposit, "deposit too small");
 
-        // FHE.asEuint32(0) é o correto na API ANTIGA
-        euint32 highestBidAmount = FHE.asEuint32(0); 
-        address winner = address(0);
-        uint256 winnerIndex = 0;
+        IERC20(a.stableToken).safeTransferFrom(msg.sender, address(this), depositAmount);
+        
+        // CORRETO: FHE.fromExternal (baseado no seu FHE.sol)
+        euint32 encryptedBid = FHE.fromExternal(bidHandle, bidProof);
+        
+        auctionBids[auctionId].push(EncryptedBid({
+            bidder: msg.sender,
+            encryptedAmount: encryptedBid,
+            deposit: depositAmount
+        }));
+        emit EncryptedBidSubmitted(auctionId, msg.sender, depositAmount);
+    }
 
-        for (uint256 i = 0; i < bidCount; i++) {
-            euint32 currentBidAmount = bids[i].encryptedAmount;
-            
-            // .gt() é o correto na API ANTIGA
-            ebool isHigher = currentBidAmount.gt(highestBidAmount);
-            
-            // FHE.ternary() é o correto na API ANTIGA
-            highestBidAmount = FHE.ternary(isHigher, currentBidAmount, highestBidAmount);
-            winner = FHE.ternary(isHigher, bids[i].bidder, winner);
-            winnerIndex = FHE.ternary(isHigher, i, winnerIndex);
-        }
+    // --- CORRIGIDO PARA A API NOVA (Sem .decrypt) ---
+    // Esta função agora APENAS encontra o vencedor e REQUISITA a descriptografia
+    function finalizeAuction(uint256 auctionId) external nonReentrant {
+        Auction storage a = auctions[auctionId];
+        require(block.timestamp >= a.biddingEnds, "bidding not ended");
+        require(a.status == AuctionStatus.Open, "already finalized");
+        EncryptedBid[] storage bids = auctionBids[auctionId];
+        uint256 bidCount = bids.length;
+        require(bidCount > 0, "No bids placed");
 
-        // .decrypt() é o correto na API ANTIGA
-        uint256 winningAmount = highestBidAmount.decrypt();
+        // CORRETO: Sintaxe da API nova para criar um euint32 com valor 0
+        euint32 highestBidAmount = FHE.asEuint32(0); 
+        euint256 winnerIndexEncrypted = FHE.asEuint256(0);
 
-        uint256 winnerDeposit = bids[winnerIndex].deposit;
-        require(winnerDeposit >= winningAmount, "Winner deposit insufficient for bid");
+        for (uint256 i = 0; i < bidCount; i++) {
+            euint32 currentBidAmount = bids[i].encryptedAmount;
+            
+            // CORRETO: FHE.gt (baseado no seu FHE.sol)
+            ebool isHigher = FHE.gt(currentBidAmount, highestBidAmount);
+            
+            // CORRETO: FHE.select (baseado no seu FHE.sol)
+            highestBidAmount = FHE.select(isHigher, currentBidAmount, highestBidAmount);
+            winnerIndexEncrypted = FHE.select(isHigher, FHE.asEuint256(i), winnerIndexEncrypted);
+        }
 
-        uint256 fee = 0;
-        uint256 sellerProceeds = winningAmount;
-        if (feeBps > 0) {
-            fee = (winningAmount * feeBps) / BPS;
-            sellerProceeds = winningAmount - fee;
-            IERC20(a.stableToken).safeTransfer(feeRecipient, fee);
-        }
+        // Armazena os resultados criptografados
+        a.highestBid = highestBidAmount;
+        a.winnerIndex = winnerIndexEncrypted;
+        a.status = AuctionStatus.AwaitingDecryption;
 
-        IERC20(a.stableToken).safeTransfer(a.seller, sellerProceeds);
-        IERC721(a.nftContract).transferFrom(address(this), winner, a.tokenId);
+        // Emite o evento para o Relayer
+        emit DecryptionRequested(
+            auctionId,
+            FHE.toBytes32(highestBidAmount), // Converte para o handle
+            FHE.toBytes32(winnerIndexEncrypted) // Converte para o handle
+        );
+    }
 
-  D      bids[winnerIndex].deposit -= winningAmount;
-        a.finalized = true;
-        emit AuctionFinalized(auctionId, winner, winningAmount, fee);
-    }
-    
-    function cancelAuction(uint256 auctionId) external nonReentrant {
-        Auction storage a = auctions[auctionId];
-        require(block.timestamp >= a.biddingEnds, "bidding not ended");
-        require(!a.finalized, "already finalized");
-        require(msg.sender == a.seller, "Not seller");
-        require(auctionBids[auctionId].length == 0, "Auction has bids");
-        a.finalized = true;
-        IERC721(a.nftContract).transferFrom(address(this), a.seller, a.tokenId);
-        emit AuctionCancelled(auctionId);
-    }
+    // --- NOVA FUNÇÃO (para o Relayer chamar) ---
+    function fulfillAuction(
+        uint256 auctionId,
+        bytes calldata decryptedData, // (winningAmount, winnerIndex)
+        bytes calldata decryptionProof
+    ) external nonReentrant { // Idealmente: onlyRelayer
+        Auction storage a = auctions[auctionId];
+        require(a.status == AuctionStatus.AwaitingDecryption, "Not awaiting decryption");
 
-    function refundLosers(uint256 auctionId) external nonReentrant {
-        Auction storage a = auctions[auctionId];
-        require(a.finalized, "not finalized");
-        uint256 len = auctionBids[auctionId].length;
-        for (uint256 i = 0; i < len; i++) {
-            EncryptedBid storage bid = auctionBids[auctionId][i];
-            uint256 amount = bid.deposit;
-            if (amount > 0) {
-                bid.deposit = 0;
-                IERC20(a.stableToken).safeTransfer(bid.bidder, amount);
-                emit RefundIssued(auctionId, bid.bidder, amount);
-            }
-        }
-    }
+        // 1. Prepara a lista de handles que pedimos
+        bytes32[] memory handlesList = new bytes32[](2);
+        handlesList[0] = FHE.toBytes32(a.highestBid);
+        handlesList[1] = FHE.toBytes32(a.winnerIndex);
 
-    function setFeeBps(uint256 _newFeeBps) external onlyOwner {
-        require(_newFeeBps <= 1000, "Tax too high");
-        feeBps = _newFeeBps;
-        emit FeeBpsChanged(_newFeeBps);
-    }
+        // 2. Verifica a prova do KMS
+        bool isValid = FHE.verifySignatures(handlesList, decryptedData, decryptionProof);
+        if (!isValid) {
+            revert FHE.InvalidKMSSignatures();
+        }
 
-    function setFeeRecipient(address _newRecipient) external onlyOwner {
-        require(_newRecipient != address(0), "Recipient cannot be zero address");
-        feeRecipient = _newRecipient;
-        emit FeeRecipientChanged(_newRecipient);
-    }
+        // 3. Desempacota os valores descriptografados
+        (uint256 winningAmount, uint256 winnerIndex) = abi.decode(decryptedData, (uint256, uint256));
+
+        // --- O resto da sua lógica original ---
+        EncryptedBid[] storage bids = auctionBids[auctionId];
+        address winner = bids[winnerIndex].bidder;
+        uint256 winnerDeposit = bids[winnerIndex].deposit;
+        
+        require(winnerDeposit >= winningAmount, "Winner deposit insufficient for bid");
+
+        uint256 fee = 0;
+        uint256 sellerProceeds = winningAmount;
+        if (feeBps > 0) {
+            fee = (winningAmount * feeBps) / BPS;
+            sellerProceeds = winningAmount - fee;
+            IERC20(a.stableToken).safeTransfer(feeRecipient, fee);
+        }
+
+        IERC20(a.stableToken).safeTransfer(a.seller, sellerProceeds);
+        IERC721(a.nftContract).transferFrom(address(this), winner, a.tokenId);
+
+        bids[winnerIndex].deposit -= winningAmount;
+        a.status = AuctionStatus.Closed;
+        emit AuctionFinalized(auctionId, winner, winningAmount, fee);
+    }
+    
+    // --- Funções restantes (com pequenas mudanças de status) ---
+    function cancelAuction(uint256 auctionId) external nonReentrant {
+        Auction storage a = auctions[auctionId];
+        require(block.timestamp >= a.biddingEnds, "bidding not ended");
+        require(a.status == AuctionStatus.Open, "already finalized"); // Só pode cancelar se estiver Open
+        require(msg.sender == a.seller, "Not seller");
+        require(auctionBids[auctionId].length == 0, "Auction has bids");
+        
+        a.status = AuctionStatus.Closed;
+        IERC721(a.nftContract).transferFrom(address(this), a.seller, a.tokenId);
+        emit AuctionCancelled(auctionId);
+    }
+
+    function refundLosers(uint256 auctionId) external nonReentrant {
+        Auction storage a = auctions[auctionId];
+        require(a.status == AuctionStatus.Closed, "not closed"); // Só reembolsa depois de fechado
+        uint256 len = auctionBids[auctionId].length;
+        for (uint256 i = 0; i < len; i++) {
+            EncryptedBid storage bid = auctionBids[auctionId][i];
+            uint256 amount = bid.deposit;
+            if (amount > 0) {
+                bid.deposit = 0;
+                IERC20(a.stableToken).safeTransfer(bid.bidder, amount);
+                emit RefundIssued(auctionId, bid.bidder, amount);
+            }
+        }
+    }
+
+    function setFeeBps(uint256 _newFeeBps) external onlyOwner {
+        require(_newFeeBps <= 1000, "Tax too high");
+        feeBps = _newFeeBps;
+        emit FeeBpsChanged(_newFeeBps);
+    }
+
+    function setFeeRecipient(address _newRecipient) external onlyOwner {
+        require(_newRecipient != address(0), "Recipient cannot be zero address");
+        feeRecipient = _newRecipient;
+        emit FeeRecipientChanged(_newRecipient);
+    }
 }

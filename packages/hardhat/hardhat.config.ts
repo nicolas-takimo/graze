@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 dotenv.config();
+import "hardhat-fhevm";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
@@ -11,7 +12,6 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
-import "hardhat-fhevm";
 
 // If not set, it uses ours Alchemy's default API key.
 // You can get your own at https://dashboard.alchemyapi.io
@@ -48,6 +48,7 @@ const config: HardhatUserConfig = {
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
         enabled: process.env.MAINNET_FORKING_ENABLED === "true",
+        fhevm: true,
       },
     },
     mainnet: {
@@ -121,6 +122,11 @@ const config: HardhatUserConfig = {
     celoSepolia: {
       url: "https://forno.celo-sepolia.celo-testnet.org/",
       accounts: [deployerPrivateKey],
+    },
+    zama: {
+      url: "https://sepolia.base.org", // URL da Base Sepolia
+      accounts: [deployerPrivateKey],
+      fhevm: true, 
     },
   },
   // Configuration for harhdat-verify plugin

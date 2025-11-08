@@ -1588,6 +1588,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fhevm/solidity@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@fhevm/solidity@npm:0.9.0"
+  dependencies:
+    encrypted-types: ^0.0.4
+    solidity-comments-darwin-arm64: 0.1.1
+    solidity-comments-linux-x64-gnu: 0.1.1
+  dependenciesMeta:
+    solidity-comments-darwin-arm64:
+      optional: true
+    solidity-comments-linux-x64-gnu:
+      optional: true
+  checksum: ffd555670d91622bb79e0c44579065d3362c2378d17604222b9b03745961026b71359b0567abe81c985d1e07ffa982cb68b32fba6dba6ee3919021f4efad6658
+  languageName: node
+  linkType: hard
+
 "@gar/promisify@npm:^1.0.1":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -3556,15 +3572,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts-upgradeable@npm:^5.1.0":
-  version: 5.5.0
-  resolution: "@openzeppelin/contracts-upgradeable@npm:5.5.0"
-  peerDependencies:
-    "@openzeppelin/contracts": 5.5.0
-  checksum: 04b1258d761be5be3493130adca7ec9324cf002add93cac0c53310f43afc35ffd485bf95acffabd93c49470e2b471e3fdc6996e9177818520f63b8138bded53b
-  languageName: node
-  linkType: hard
-
 "@openzeppelin/contracts@npm:4.9.5":
   version: 4.9.5
   resolution: "@openzeppelin/contracts@npm:4.9.5"
@@ -3572,7 +3579,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^5.0.1, @openzeppelin/contracts@npm:^5.1.0, @openzeppelin/contracts@npm:^5.3.0, @openzeppelin/contracts@npm:^5.4.0":
+"@openzeppelin/contracts@npm:^5.3.0, @openzeppelin/contracts@npm:^5.4.0":
   version: 5.5.0
   resolution: "@openzeppelin/contracts@npm:5.5.0"
   checksum: 77a5140be7f57190e0bae53ead7ff2f266d418ade90c2b281fddc3e812d8c26a7b4143dd290e68cf4635dcdbb147699603f0c50ea1dacec0bfba59b3ce2c75bc
@@ -4043,6 +4050,7 @@ __metadata:
     "@chainlink/contracts": ^1.5.0
     "@ethersproject/abi": ~5.7.0
     "@ethersproject/providers": ~5.7.2
+    "@fhevm/solidity": ^0.9.0
     "@inquirer/password": ^4.0.2
     "@nomicfoundation/hardhat-chai-matchers": ~2.0.7
     "@nomicfoundation/hardhat-ethers": ~3.0.8
@@ -4059,15 +4067,14 @@ __metadata:
     "@types/qrcode": ~1.5.5
     "@typescript-eslint/eslint-plugin": ~8.27.0
     "@typescript-eslint/parser": ~8.27.0
-    chai: ~4.5.0
+    chai: ^4.2.0
     dotenv: ~16.4.5
     envfile: ~7.1.0
     eslint: ~9.23.0
     eslint-config-prettier: ~10.1.1
     eslint-plugin-prettier: ~5.2.4
     ethers: ~6.13.2
-    fhevm: 0.2.2
-    fhevm-contracts: ^0.2.4
+    fhevmjs: latest
     hardhat: ~2.22.10
     hardhat-deploy: ^1.0.4
     hardhat-deploy-ethers: ~0.4.2
@@ -4718,6 +4725,13 @@ __metadata:
   version: 1.0.8
   resolution: "@types/estree@npm:1.0.8"
   checksum: bd93e2e415b6f182ec4da1074e1f36c480f1d26add3e696d54fb30c09bc470897e41361c8fd957bf0985024f8fbf1e6e2aff977d79352ef7eb93a5c6dcff6c11
+  languageName: node
+  linkType: hard
+
+"@types/glob-to-regexp@npm:^0.4.4":
+  version: 0.4.4
+  resolution: "@types/glob-to-regexp@npm:0.4.4"
+  checksum: be9c924d664592a16129c825aa392365335ce455c34e1c9d3f6dd8b45371088bb5d4a45bbb576559f2b63d4f8bcf464cbd5baafb08cdf89b71d3b6a79356b747
   languageName: node
   linkType: hard
 
@@ -7367,7 +7381,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^4.3.4, chai@npm:~4.5.0":
+"chai@npm:^4.2.0, chai@npm:^4.3.4":
   version: 4.5.0
   resolution: "chai@npm:4.5.0"
   dependencies:
@@ -8305,6 +8319,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dequal@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "dequal@npm:2.0.3"
+  checksum: 8679b850e1a3d0ebbc46ee780d5df7b478c23f335887464023a631d1b9af051ad4a6595a44220f9ff8ff95a8ddccf019b5ad778a976fd7bbf77383d36f412f90
+  languageName: node
+  linkType: hard
+
 "derive-valtio@npm:0.1.0":
   version: 0.1.0
   resolution: "derive-valtio@npm:0.1.0"
@@ -8565,6 +8586,13 @@ __metadata:
   dependencies:
     iconv-lite: ^0.6.2
   checksum: bb98632f8ffa823996e508ce6a58ffcf5856330fde839ae42c9e1f436cc3b5cc651d4aeae72222916545428e54fd0f6aa8862fd8d25bdbcc4589f1e3f3715e7f
+  languageName: node
+  linkType: hard
+
+"encrypted-types@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "encrypted-types@npm:0.0.4"
+  checksum: 317b2bfc59ab4c5123d5b5c7ae19c0da2cfb69baab3f71c32b5238cf583fb530f0ac4290c65c3577b1ec427278b53f1a335a6f67071bda05eb480f26c5cee87f
   languageName: node
   linkType: hard
 
@@ -9934,14 +9962,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fhevm-contracts@npm:^0.2.4":
-  version: 0.2.4
-  resolution: "fhevm-contracts@npm:0.2.4"
+"fetch-mock@npm:^11.1.3":
+  version: 11.1.5
+  resolution: "fetch-mock@npm:11.1.5"
   dependencies:
-    "@openzeppelin/contracts": ^5.1.0
-    "@openzeppelin/contracts-upgradeable": ^5.1.0
-    fhevm: ^0.6.2
-  checksum: 374ab3a82e3889979aafa344ac449042d05b7115de6658d062708b5de7f7ff1c542134cc8686d8b8644c7e0569870838e4273b7628c29a7781807de0d266e440
+    "@types/glob-to-regexp": ^0.4.4
+    dequal: ^2.0.3
+    glob-to-regexp: ^0.4.1
+    is-subset: ^0.1.1
+    regexparam: ^3.0.0
+  peerDependenciesMeta:
+    node-fetch:
+      optional: true
+  checksum: 3561c82ee6fe3125eb644ad757cb65ef6372642a4843e42c90a60751765908c608cfc9d56356e1105352f83271fd607f220916de0e57ebaebc03fbd5f0d9e8f9
   languageName: node
   linkType: hard
 
@@ -9951,17 +9984,6 @@ __metadata:
   dependencies:
     "@openzeppelin/contracts": ^4.9.2
   checksum: 0f1ee4307643a3381a82b7c82506720713697516d85b3221fcd69844862b87296138b3e13a766741757135493bec14e175777ba6c8a7728e9be6c39702e9ea4f
-  languageName: node
-  linkType: hard
-
-"fhevm@npm:^0.6.2":
-  version: 0.6.2
-  resolution: "fhevm@npm:0.6.2"
-  dependencies:
-    "@openzeppelin/contracts": ^5.0.1
-    extra-bigint: ^1.1.18
-    sqlite3: ^5.1.7
-  checksum: 65502ca5d426e109f3ccf75f23a31ab90e75aba5dd02f83ed2b703334c26f9be87bbdf82c06006827b7388c596ef4694d182aeeb595d24f46cfce560cfb0e83f
   languageName: node
   linkType: hard
 
@@ -9981,6 +10003,25 @@ __metadata:
   bin:
     fhevm: bin/fhevm.js
   checksum: 00f6ae80547dae6e5097d1cc99850e716f3d06465e2f90925f3be2a8123fbd47e75c2798a94e2a84049d710b5ee9eb323fdb25dbc52b8a7041d72921f72ecfe4
+  languageName: node
+  linkType: hard
+
+"fhevmjs@npm:latest":
+  version: 0.6.2
+  resolution: "fhevmjs@npm:0.6.2"
+  dependencies:
+    bigint-buffer: ^1.1.5
+    commander: ^11.0.0
+    fetch-mock: ^11.1.3
+    keccak: ^3.0.4
+    node-tfhe: ^0.9.1
+    node-tkms: ^0.9.0
+    tfhe: ^0.9.1
+    tkms: ^0.9.0
+    wasm-feature-detect: ^1.8.0
+  bin:
+    fhevm: bin/fhevm.js
+  checksum: 02f4a8da42ef0ed1641659959c6754c3e8340becb43e7cd2ec967313d5bb598c785a5290c4be98f44fc48698883dc00b9b49397aee679e7170b3f65f1ff34d67
   languageName: node
   linkType: hard
 
@@ -10530,6 +10571,13 @@ __metadata:
   dependencies:
     is-glob: ^4.0.3
   checksum: c13ee97978bef4f55106b71e66428eb1512e71a7466ba49025fc2aec59a5bfb0954d5abd58fc5ee6c9b076eef4e1f6d3375c2e964b88466ca390da4419a786a8
+  languageName: node
+  linkType: hard
+
+"glob-to-regexp@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "glob-to-regexp@npm:0.4.1"
+  checksum: e795f4e8f06d2a15e86f76e4d92751cf8bbfcf0157cea5c2f0f35678a8195a750b34096b1256e436f0cebc1883b5ff0888c47348443e69546a5a87f9e1eb1167
   languageName: node
   linkType: hard
 
@@ -11867,6 +11915,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-subset@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "is-subset@npm:0.1.1"
+  checksum: 97b8d7852af165269b7495095691a6ce6cf20bdfa1f846f97b4560ee190069686107af4e277fbd93aa0845c4d5db704391460ff6e9014aeb73264ba87893df44
+  languageName: node
+  linkType: hard
+
 "is-symbol@npm:^1.0.4, is-symbol@npm:^1.1.1":
   version: 1.1.1
   resolution: "is-symbol@npm:1.1.1"
@@ -12398,7 +12453,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"keccak@npm:^3.0.0, keccak@npm:^3.0.2, keccak@npm:^3.0.3":
+"keccak@npm:^3.0.0, keccak@npm:^3.0.2, keccak@npm:^3.0.3, keccak@npm:^3.0.4":
   version: 3.0.4
   resolution: "keccak@npm:3.0.4"
   dependencies:
@@ -13962,6 +14017,20 @@ __metadata:
   version: 0.6.4
   resolution: "node-tfhe@npm:0.6.4"
   checksum: 9be1184e3aa2873ba0e66f2481ce769336d047e4928927b88516b89070bc52868ae4b1265bee72db6efc1156198101acf0b6eca3cc6f275311b32d625baecedd
+  languageName: node
+  linkType: hard
+
+"node-tfhe@npm:^0.9.1":
+  version: 0.9.1
+  resolution: "node-tfhe@npm:0.9.1"
+  checksum: fde45a0b76d4c00d779218142a902be6c641024ce63b40e2e7c7e87b07382ab5451ad00cac6672e1d8fc630a7caf6a5832eaf27cd8c1e2cfff977f6953c96e1f
+  languageName: node
+  linkType: hard
+
+"node-tkms@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "node-tkms@npm:0.9.0"
+  checksum: e6c26b58df5b03236b4dc9f0203d0a18183056172e45f8f8b94b99b8906b9c5beff02db5b63b2e57eca07ab3ec725475d69427cb762038b5ae354f56aa81e403
   languageName: node
   linkType: hard
 
@@ -15898,6 +15967,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"regexparam@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "regexparam@npm:3.0.0"
+  checksum: c8649af1538ccc12b5c5d250525f61bd370227dce41f4fb908433a9651e18b7be21dd8f8518c322dd9ebd75f7caaaea4921e374c39a469c11d4f9d0c738043e0
+  languageName: node
+  linkType: hard
+
 "repeat-string@npm:^1.0.0":
   version: 1.6.1
   resolution: "repeat-string@npm:1.6.1"
@@ -16790,6 +16866,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"solidity-comments-darwin-arm64@npm:0.1.1":
+  version: 0.1.1
+  resolution: "solidity-comments-darwin-arm64@npm:0.1.1"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"solidity-comments-linux-x64-gnu@npm:0.1.1":
+  version: 0.1.1
+  resolution: "solidity-comments-linux-x64-gnu@npm:0.1.1"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "solidity-coverage@npm:~0.8.13":
   version: 0.8.16
   resolution: "solidity-coverage@npm:0.8.16"
@@ -17507,6 +17597,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tfhe@npm:^0.9.1":
+  version: 0.9.1
+  resolution: "tfhe@npm:0.9.1"
+  checksum: 594fe66a23e51fa2acd13fad4b7c725fb16024b2a0e839fff03b572a9007de5e2aa0f9965abe6a6a77eb82ff51bb78ad167ae6706ad965109cfd28188701abe8
+  languageName: node
+  linkType: hard
+
 "thread-stream@npm:^0.15.1":
   version: 0.15.2
   resolution: "thread-stream@npm:0.15.2"
@@ -17560,6 +17657,13 @@ __metadata:
     fdir: ^6.5.0
     picomatch: ^4.0.3
   checksum: 0e33b8babff966c6ab86e9b825a350a6a98a63700fa0bb7ae6cf36a7770a508892383adc272f7f9d17aaf46a9d622b455e775b9949a3f951eaaf5dfb26331d44
+  languageName: node
+  linkType: hard
+
+"tkms@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "tkms@npm:0.9.0"
+  checksum: 377510243ecbbd9a639a8c95ad079b5cc740ff0eb7ec4210a5145daa4eeb097111aecc306d7ed44ae84cf6464e20ab02fc9639b2d8452b71905ad4bf3eff662b
   languageName: node
   linkType: hard
 
@@ -18716,6 +18820,13 @@ __metadata:
   version: 3.0.1
   resolution: "walk-up-path@npm:3.0.1"
   checksum: 9ffca02fe30fb65f6db531260582988c5e766f4c739cf86a6109380a7f791236b5d0b92b1dce37a6f73e22dca6bc9d93bf3700413e16251b2bd6bbd1ca2be316
+  languageName: node
+  linkType: hard
+
+"wasm-feature-detect@npm:^1.8.0":
+  version: 1.8.0
+  resolution: "wasm-feature-detect@npm:1.8.0"
+  checksum: 5972a95fb4064d23d828cd23e70f59ebf612db0fff2209365cc47190886328af570d1d40db00c8d41982fef2b446a8f143cf292482bbf3e1214e60b292c78ccc
   languageName: node
   linkType: hard
 
