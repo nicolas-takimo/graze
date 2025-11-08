@@ -1445,7 +1445,7 @@ const deployedContracts = {
   },
   84532: {
     AgroAsset: {
-      address: "0xa4e197c51a1115159c01371A83605386243a3Cc0",
+      address: "0xAC704c2fA97b332F5CD6b14a3DE8d1b65a06B5e4",
       abi: [
         {
           inputs: [],
@@ -1500,6 +1500,43 @@ const deployedContracts = {
             },
           ],
           name: "ApprovalForAll",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "tokenId",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "assetType",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "quantity",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "location",
+              type: "string",
+            },
+          ],
+          name: "AssetMinted",
           type: "event",
         },
         {
@@ -1919,10 +1956,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 33410907,
+      deployedOnBlock: 33411190,
     },
     AuctionManager: {
-      address: "0x518cbd7A106F4ca90081DAcA44947C3f694e0FE1",
+      address: "0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179",
       abi: [
         {
           inputs: [
@@ -2549,10 +2586,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33410943,
+      deployedOnBlock: 33411193,
     },
     MockBridgeBase: {
-      address: "0x477Dfa42F41343579514c6A44b36D3AbbC2dc2D7",
+      address: "0x35C3D23B64a923ED09825aA290ad1F93B29AcFf5",
       abi: [
         {
           inputs: [
@@ -2792,10 +2829,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33411017,
+      deployedOnBlock: 33411194,
     },
     MockPriceFeed: {
-      address: "0xb09450B8BbDa0CaFAE98d15B6f545BCC2a977B89",
+      address: "0xbAdB0903FB8bF015603B8E83fFbD74040951e96d",
       abi: [
         {
           inputs: [
@@ -2945,10 +2982,10 @@ const deployedContracts = {
         latestRoundData: "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol",
         version: "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol",
       },
-      deployedOnBlock: 33410919,
+      deployedOnBlock: 33411191,
     },
     StableToken: {
-      address: "0xc82780c3bA7E269D457b7035e3Ff58780dc6157F",
+      address: "0xd3429C2E46a853Ce99cB27688345FcB41C19B12A",
       abi: [
         {
           inputs: [],
@@ -3330,10 +3367,10 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33410891,
+      deployedOnBlock: 33411175,
     },
     VaultManager: {
-      address: "0xB0E1DF4D4f2975d08249c04798703b24686A96ba",
+      address: "0xe57b35431D60125DEb2963DBff68BeD3b3444Ef2",
       abi: [
         {
           inputs: [
@@ -3679,7 +3716,7 @@ const deployedContracts = {
         renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
         transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
       },
-      deployedOnBlock: 33410941,
+      deployedOnBlock: 33411192,
     },
   },
 } as const;
