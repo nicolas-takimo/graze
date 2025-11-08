@@ -4,8 +4,16 @@
 
 - Conta na Vercel (https://vercel.com)
 - Conta no WalletConnect Cloud (https://cloud.walletconnect.com)
-- Contratos deployados na Base Sepolia
+- Contratos deployados na Base Sepolia (já feito!)
 - Repositório Git
+
+## IMPORTANTE: Contratos Já Estão Prontos!
+
+Os contratos já foram deployados e o arquivo `packages/nextjs/contracts/deployedContracts.ts` já está commitado no Git.
+
+**Você NÃO precisa rodar `yarn deploy` na Vercel!**
+
+A Vercel vai apenas fazer o build do frontend (`yarn build`) que já inclui os contratos.
 
 ## Passo 1: Obter WalletConnect Project ID
 
