@@ -221,6 +221,20 @@ const AuctionDetail: NextPage = () => {
     try {
       setIsPlacingBid(true);
 
+      // Verificar e aprovar tokens se necessário
+      const currentAllowance = allowance || 0n;
+      if (currentAllowance < bidValue) {
+        notification.info("Aprovando tokens AUSDC...");
+
+        await approveToken({
+          functionName: "approve",
+          args: ["0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179", parseEther("1000000")],
+        });
+
+        notification.success("✅ Tokens aprovados!");
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
       // Verificar se o leilão usa lances criptografados
       if (displayAuction.encrypted) {
         // Lance criptografado usando FHE (Zama)
