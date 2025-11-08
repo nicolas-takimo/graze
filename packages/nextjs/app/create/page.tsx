@@ -253,7 +253,7 @@ const CreateAsset: NextPage = () => {
 
               <div>
                 <label className="label">
-                  <span className="label-text font-semibold">Valor Avaliado (USDC)</span>
+                  <span className="label-text font-semibold">Valor Avaliado (AUSDC)</span>
                   <span className="label-text-alt">Valor estimado do ativo</span>
                 </label>
                 <div className="input-group">
@@ -271,7 +271,7 @@ const CreateAsset: NextPage = () => {
                 {valorAvaliado && (
                   <label className="label">
                     <span className="label-text-alt text-primary font-semibold">
-                      Lance mínimo: {lanceMinimo} USDC (50% do valor avaliado)
+                      Lance mínimo: {lanceMinimo} AUSDC (50% do valor avaliado)
                     </span>
                   </label>
                 )}
@@ -358,7 +358,7 @@ const CreateAsset: NextPage = () => {
           <div className="card-body">
             <h3 className="font-bold">Como funciona o Leilão?</h3>
             <p className="text-sm opacity-70">
-              Investidores darão lances em USDC. Ao final, o maior lance vence e o NFT é transferido automaticamente.
+              Investidores darão lances em AUSDC. Ao final, o maior lance vence e o NFT é transferido automaticamente.
             </p>
           </div>
         </div>
