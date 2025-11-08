@@ -63,31 +63,26 @@ const AuctionDetail: NextPage = () => {
     args: displayAuctionTemp ? [displayAuctionTemp.tokenId] : undefined,
   });
 
-  // Buscar eventos de lances
+  // Buscar eventos de lances (últimos 10000 blocos para evitar timeout)
   const { data: bidEvents, isLoading: loadingBids } = useScaffoldEventHistory({
     contractName: "AuctionManager",
     eventName: "BidPlaced",
-    fromBlock: 0n,
+    fromBlock: BigInt(Math.max(0, Date.now() - 10000)), // Últimos ~10k blocos
     filters: { id: BigInt(auctionId || 0) },
     watch: true,
+    blockData: true,
+    transactionData: true,
+    receiptData: true,
   });
 
   // Filtrar apenas lances da carteira conectada (lances privados)
   const myBids = useMemo(() => {
     if (!bidEvents || !connectedAddress) return [];
-    console.log("🔍 DEBUG - Todos os eventos:", bidEvents);
-    console.log("🔍 DEBUG - Meu endereço:", connectedAddress);
-    const filtered = bidEvents.filter(event => {
-      console.log("🔍 DEBUG - Evento bidder:", event.args.bidder);
-      return event.args.bidder?.toLowerCase() === connectedAddress.toLowerCase();
-    });
-    console.log("🔍 DEBUG - Lances filtrados:", filtered);
-    return filtered;
+    return bidEvents.filter(event => event.args.bidder?.toLowerCase() === connectedAddress.toLowerCase());
   }, [bidEvents, connectedAddress]);
 
   // Contar apenas meus lances
   const totalBids = myBids.length;
-  console.log("🔍 DEBUG - Total de meus lances:", totalBids);
 
   // Hooks para escrever
   const { writeContractAsync: approveToken } = useScaffoldWriteContract("StableToken");
