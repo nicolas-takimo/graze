@@ -180,6 +180,58 @@ contract AuctionManager is ReentrancyGuard, Ownable {
     // --- 4. Finalization and Payout ---
 
     /**
+     * @dev Automatically finalizes a plaintext auction by finding the highest bidder.
+     * Can be called by anyone after the auction ends.
+     */
+    function finalizeAuction(uint256 auctionId) external nonReentrant {
+        Auction storage a = auctions[auctionId];
+        require(block.timestamp >= a.biddingEnds, "bidding not ended");
+        require(!a.finalized, "already finalized");
+        require(!a.usesEncrypted, "use finalizeWithProof for encrypted auctions");
+        require(a.bidCount > 0, "No bids placed");
+
+        // Find the highest bidder
+        address[] storage bidderList = bidders[auctionId];
+        address winner = address(0);
+        uint256 highestBid = 0;
+
+        for (uint256 i = 0; i < bidderList.length; i++) {
+            address bidder = bidderList[i];
+            uint256 bidAmount = bids[auctionId][bidder];
+            if (bidAmount > highestBid) {
+                highestBid = bidAmount;
+                winner = bidder;
+            }
+        }
+
+        require(winner != address(0), "No valid winner found");
+        require(highestBid > 0, "No valid bids");
+
+        // Deduct the winning amount from winner's deposit
+        bids[auctionId][winner] = 0; // Winner gets no refund, paid full amount
+
+        // --- Fee Logic ---
+        uint256 fee = 0;
+        uint256 sellerProceeds = highestBid;
+
+        if (feeBps > 0) {
+            fee = (highestBid * feeBps) / BPS;
+            sellerProceeds = highestBid - fee;
+            IERC20(a.stableToken).safeTransfer(feeRecipient, fee);
+        }
+
+        // Pay the seller
+        IERC20(a.stableToken).safeTransfer(a.seller, sellerProceeds);
+
+        // Transfer the NFT to the winner
+        IERC721(a.nftContract).transferFrom(address(this), winner, a.tokenId);
+
+        a.finalized = true;
+        a.winner = winner;
+        emit AuctionFinalized(auctionId, winner, highestBid, fee);
+    }
+
+    /**
      * @dev Finalizes an auction, paying the seller and fee recipient.
      * Requires a 'proof' which, in this stub, is just an owner check.
      */

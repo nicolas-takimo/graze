@@ -25,8 +25,11 @@ const AuctionDetail: NextPage = () => {
   const { address: connectedAddress } = useAccount();
   const [bidAmount, setBidAmount] = useState("");
   const [ethAmount, setEthAmount] = useState("");
+  const [transferAddress, setTransferAddress] = useState("");
+  const [transferAmount, setTransferAmount] = useState("");
   const [isPlacingBid, setIsPlacingBid] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
 
   // Buscar dados do leilão
   const { data: auctionData, isLoading: loadingAuction } = useScaffoldReadContract({
@@ -75,20 +78,31 @@ const AuctionDetail: NextPage = () => {
     receiptData: true,
   });
 
-  // Filtrar apenas lances da carteira conectada (lances privados)
+  // Filtrar apenas lances da carteira conectada (privacidade)
   const myBids = useMemo(() => {
     if (!bidEvents || !connectedAddress) return [];
     return bidEvents.filter(event => event.args.bidder?.toLowerCase() === connectedAddress.toLowerCase());
   }, [bidEvents, connectedAddress]);
 
   // Contar apenas meus lances
-  const totalBids = myBids.length;
+  const totalMyBids = myBids.length;
+
+  // Encontrar meu maior lance
+  const myHighestBid = useMemo(() => {
+    if (!myBids || myBids.length === 0) return null;
+    return myBids.reduce((max, bid) => {
+      const bidAmount = bid.args.amount || 0n;
+      return bidAmount > (max?.args.amount || 0n) ? bid : max;
+    }, myBids[0]);
+  }, [myBids]);
 
   // Hooks para escrever
   const { writeContractAsync: approveToken } = useScaffoldWriteContract("StableToken");
   const { writeContractAsync: placeBidTx } = useScaffoldWriteContract("AuctionManager");
   const { writeContractAsync: vaultMint } = useScaffoldWriteContract("VaultManager");
   const { writeContractAsync: cancelAuctionTx } = useScaffoldWriteContract("AuctionManager");
+  const { writeContractAsync: transferToken } = useScaffoldWriteContract("StableToken");
+  const { writeContractAsync: finalizeAuctionTx } = useScaffoldWriteContract("AuctionManager");
 
   // Processar dados do leilão
   const displayAuction = useMemo(() => {
@@ -199,6 +213,29 @@ const AuctionDetail: NextPage = () => {
       } else {
         notification.error(errorMsg);
       }
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleTransfer = async () => {
+    if (!transferAddress || !transferAmount) {
+      notification.error("Preencha endereço e valor");
+      return;
+    }
+
+    try {
+      setIsApproving(true);
+      await transferToken({
+        functionName: "transfer",
+        args: [transferAddress as `0x${string}`, parseEther(transferAmount)],
+      });
+      notification.success("AUSD transferido com sucesso!");
+      setTransferAddress("");
+      setTransferAmount("");
+      setShowTransfer(false);
+    } catch (error: any) {
+      notification.error(error.message || "Erro ao transferir");
     } finally {
       setIsApproving(false);
     }
@@ -369,23 +406,60 @@ const AuctionDetail: NextPage = () => {
                 </div>
                 <div>
                   <p className="text-sm opacity-70">Total de Lances</p>
-                  <p className="font-bold text-primary text-xl">
-                    {loadingBids ? <span className="loading loading-spinner loading-sm"></span> : totalBids}
-                  </p>
+                  <p className="font-bold text-primary text-xl">{Number(displayAuction.bidCount)}</p>
                 </div>
               </div>
 
               {displayAuction.winner !== "0x0000000000000000000000000000000000000000" && (
-                <div className="mt-4 p-4 bg-success/10 rounded-lg">
+                <div className="mt-4 p-4 bg-success/10 rounded-lg border-2 border-success">
                   <p className="text-sm font-semibold mb-2">🏆 Vencedor:</p>
                   <Address address={displayAuction.winner} />
+                </div>
+              )}
+
+              {/* Botão para finalizar leilão com lances */}
+              {hasEnded && !displayAuction.finalized && displayAuction.bidCount > 0 && !displayAuction.encrypted && (
+                <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary">
+                  <p className="text-sm font-semibold mb-2">🎯 Leilão Pronto para Finalizar</p>
+                  <p className="text-xs opacity-70 mb-3">
+                    Este leilão terminou com {Number(displayAuction.bidCount)} lance
+                    {Number(displayAuction.bidCount) > 1 ? "s" : ""}. Finalize para determinar o vencedor e transferir o
+                    NFT.
+                  </p>
+                  <button
+                    className="btn btn-primary btn-sm w-full"
+                    onClick={async () => {
+                      try {
+                        setIsApproving(true);
+                        await finalizeAuctionTx({
+                          functionName: "finalizeAuction",
+                          args: [BigInt(auctionId)],
+                        });
+                        notification.success("Leilão finalizado! Vencedor determinado.");
+                      } catch (error: any) {
+                        notification.error(error.message || "Erro ao finalizar leilão");
+                      } finally {
+                        setIsApproving(false);
+                      }
+                    }}
+                    disabled={isApproving}
+                  >
+                    {isApproving ? (
+                      <>
+                        <span className="loading loading-spinner loading-xs"></span>
+                        Finalizando...
+                      </>
+                    ) : (
+                      "🏆 Finalizar Leilão e Determinar Vencedor"
+                    )}
+                  </button>
                 </div>
               )}
 
               {/* Botão para cancelar leilão sem lances */}
               {hasEnded &&
                 !displayAuction.finalized &&
-                totalBids === 0 &&
+                displayAuction.bidCount === 0n &&
                 connectedAddress?.toLowerCase() === displayAuction.seller.toLowerCase() && (
                   <div className="mt-4 p-4 bg-warning/10 rounded-lg border border-warning">
                     <p className="text-sm font-semibold mb-2">⚠️ Leilão Expirado Sem Lances</p>
@@ -429,9 +503,9 @@ const AuctionDetail: NextPage = () => {
             <div className="card-body">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="card-title">Meus Lances</h3>
-                {totalBids > 0 && (
+                {totalMyBids > 0 && (
                   <span className="badge badge-primary">
-                    {totalBids} {totalBids === 1 ? "lance" : "lances"}
+                    {totalMyBids} {totalMyBids === 1 ? "lance" : "lances"}
                   </span>
                 )}
               </div>
@@ -445,7 +519,7 @@ const AuctionDetail: NextPage = () => {
                   <span className="loading loading-spinner loading-lg"></span>
                   <p className="text-sm opacity-70 mt-2">Carregando seus lances...</p>
                 </div>
-              ) : totalBids === 0 ? (
+              ) : totalMyBids === 0 ? (
                 <div className="text-center py-8 bg-base-200 rounded-lg">
                   <p className="text-sm opacity-70">Você ainda não deu nenhum lance</p>
                   <p className="text-xs opacity-50 mt-1">🔒 Lances são privados - apenas você vê seus lances</p>
@@ -455,29 +529,34 @@ const AuctionDetail: NextPage = () => {
                   {myBids
                     .slice()
                     .reverse()
-                    .map((event, idx) => (
-                      <div
-                        key={`${event.transactionHash}-${idx}`}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          idx === 0 ? "bg-success/10 border-success" : "bg-base-200 border-base-300"
-                        }`}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Address address={event.args.bidder as `0x${string}`} size="sm" />
-                              {idx === 0 && <span className="badge badge-success badge-sm">🏆 Maior Lance</span>}
+                    .map((event, idx) => {
+                      const isMyHighest = myHighestBid && event.args.amount === myHighestBid.args.amount;
+                      return (
+                        <div
+                          key={`${event.transactionHash}-${idx}`}
+                          className={`p-4 rounded-lg border-2 transition-all ${
+                            isMyHighest ? "bg-success/10 border-success" : "bg-base-200 border-base-300"
+                          }`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Address address={event.args.bidder as `0x${string}`} size="sm" />
+                                {isMyHighest && (
+                                  <span className="badge badge-success badge-sm">🏆 Seu Maior Lance</span>
+                                )}
+                              </div>
+                              <p className="text-xs opacity-60">Bloco #{event.blockNumber?.toString()}</p>
                             </div>
-                            <p className="text-xs opacity-60">Bloco #{event.blockNumber?.toString()}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className={`font-bold ${idx === 0 ? "text-success text-2xl" : "text-lg"}`}>
-                              {formatAUSD(event.args.amount)} AUSD
-                            </p>
+                            <div className="text-right">
+                              <p className={`font-bold ${isMyHighest ? "text-success text-2xl" : "text-lg"}`}>
+                                {formatAUSD(event.args.amount)} AUSD
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               )}
             </div>
@@ -510,6 +589,51 @@ const AuctionDetail: NextPage = () => {
                         <span className="text-sm font-semibold">Seu Saldo AUSD:</span>
                         <span className="text-lg font-bold">{formatAUSD(usdcBalance)} AUSD</span>
                       </div>
+
+                      {/* Botão Transferir */}
+                      {usdcBalance && usdcBalance > 0n && (
+                        <button
+                          className="btn btn-sm btn-outline btn-primary w-full mt-2"
+                          onClick={() => setShowTransfer(!showTransfer)}
+                        >
+                          {showTransfer ? "❌ Cancelar" : "💸 Transferir AUSD"}
+                        </button>
+                      )}
+
+                      {/* Form de Transferência */}
+                      {showTransfer && (
+                        <div className="mt-3 space-y-2">
+                          <input
+                            type="text"
+                            placeholder="Endereço destino (0x...)"
+                            className="input input-bordered input-sm w-full"
+                            value={transferAddress}
+                            onChange={e => setTransferAddress(e.target.value)}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Quantidade AUSD"
+                            className="input input-bordered input-sm w-full"
+                            value={transferAmount}
+                            onChange={e => setTransferAmount(e.target.value)}
+                          />
+                          <button
+                            className="btn btn-sm btn-primary w-full"
+                            onClick={handleTransfer}
+                            disabled={isApproving || !transferAddress || !transferAmount}
+                          >
+                            {isApproving ? (
+                              <>
+                                <span className="loading loading-spinner loading-xs"></span>
+                                Transferindo...
+                              </>
+                            ) : (
+                              "Confirmar Transferência"
+                            )}
+                          </button>
+                        </div>
+                      )}
+
                       {(!usdcBalance || usdcBalance === 0n) && (
                         <>
                           <div className="divider my-2"></div>
