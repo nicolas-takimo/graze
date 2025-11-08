@@ -484,22 +484,33 @@ const AuctionDetail: NextPage = () => {
                       {(!usdcBalance || usdcBalance === 0n) && (
                         <>
                           <p className="text-xs mt-2 opacity-80">⚠️ Você precisa de tokens USDC para dar lances</p>
+                          <div className="mt-2">
+                            <input
+                              type="number"
+                              placeholder="Quantidade de ETH (ex: 0.01)"
+                              className="input input-bordered input-sm w-full"
+                              value={ethAmount}
+                              onChange={e => setEthAmount(e.target.value)}
+                              step="0.001"
+                              min="0"
+                            />
+                          </div>
                           <button
                             className="btn btn-sm btn-primary w-full mt-2"
                             onClick={handleMintTokens}
-                            disabled={isApproving}
+                            disabled={isApproving || !ethAmount}
                           >
                             {isApproving ? (
                               <>
                                 <span className="loading loading-spinner loading-xs"></span>
-                                Depositando ETH...
+                                Mintando...
                               </>
                             ) : (
-                              "💰 Depositar 10 ETH → Obter 10.000 USDC"
+                              "💰 Depositar ETH → Obter USDC"
                             )}
                           </button>
                           <p className="text-xs mt-2 opacity-60">
-                            💡 Você depositará 10 ETH como colateral no VaultManager para mintar 10.000 USDC
+                            💡 Você depositará ETH como colateral no VaultManager para mintar USDC
                           </p>
                         </>
                       )}
