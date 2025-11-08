@@ -39,10 +39,10 @@ const CreateAsset: NextPage = () => {
   // Calcular lance mínimo (50% do valor avaliado)
   const lanceMinimo = valorAvaliado ? (Number(valorAvaliado) * 0.5).toString() : "0";
 
-  // Endereços dos contratos (hardcoded para evitar loops)
-  const agroAssetAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-  const stableTokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-  const auctionManagerAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
+  // Endereços dos contratos Base Sepolia
+  const agroAssetAddress = "0xAC704c2fA97b332F5CD6b14a3DE8d1b65a06B5e4";
+  const stableTokenAddress = "0xd3429C2E46a853Ce99cB27688345FcB41C19B12A";
+  const auctionManagerAddress = "0x18cFb0e7d1dC60effF4bC65f206D11A8e488F179";
 
   // Buscar o próximo tokenId disponível
   const { data: nextTokenId, refetch: refetchNextTokenId } = useScaffoldReadContract({
