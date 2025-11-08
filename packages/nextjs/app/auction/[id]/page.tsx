@@ -16,6 +16,7 @@ const AuctionDetail: NextPage = () => {
   const auctionId = params?.id as string;
   const { address: connectedAddress } = useAccount();
   const [bidAmount, setBidAmount] = useState("");
+  const [ethAmount, setEthAmount] = useState("");
   const [isPlacingBid, setIsPlacingBid] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
 
