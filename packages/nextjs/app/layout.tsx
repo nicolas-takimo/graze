@@ -1,4 +1,3 @@
-
 import "@rainbow-me/rainbowkit/styles.css";
 import "@scaffold-ui/components/styles.css";
 import { ScaffoldEthAppWithProviders } from "~~/components/ScaffoldEthAppWithProviders";
@@ -6,11 +5,15 @@ import { ThemeProvider } from "~~/components/ThemeProvider";
 import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
-
-export const metadata = getMetadata({
-  title: 'Scaffold-ETH 2 App',
-  description: 'Built with 🏗 Scaffold-ETH 2'
-});
+export const metadata = {
+  ...getMetadata({
+    title: "Graze - Leilões Agropecuários",
+    description: "Plataforma descentralizada para leilões de ativos agropecuários tokenizados",
+  }),
+  icons: {
+    icon: "/favicon.png",
+  },
+};
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   return (

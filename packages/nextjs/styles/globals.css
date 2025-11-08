@@ -18,51 +18,52 @@
 @plugin "daisyui/theme" {
   name: "light";
 
-  --color-primary: #93bbfb;
-  --color-primary-content: #212638;
-  --color-secondary: #dae8ff;
-  --color-secondary-content: #212638;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
-  --color-neutral: #212638;
+  /* Graze Design System - Light Mode */
+  --color-primary: #4caf50; /* Graze Green */
+  --color-primary-content: #ffffff;
+  --color-secondary: #8bc34a; /* Light Green */
+  --color-secondary-content: #ffffff;
+  --color-accent: #ffc107; /* Harvest Gold */
+  --color-accent-content: #212121;
+  --color-neutral: #212121;
   --color-neutral-content: #ffffff;
   --color-base-100: #ffffff;
-  --color-base-200: #f4f8ff;
-  --color-base-300: #dae8ff;
-  --color-base-content: #212638;
-  --color-info: #93bbfb;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-base-200: #f8f9fa; /* Field Mist */
+  --color-base-300: #e0e0e0; /* Clay */
+  --color-base-content: #212121;
+  --color-info: #4caf50; /* Verde ao invés de azul */
+  --color-success: #00c853;
+  --color-warning: #ffa000;
+  --color-error: #d32f2f;
 
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
+  --radius-field: 0.5rem; /* 8px */
+  --radius-box: 1rem; /* 16px */
   --tt-tailw: 6px;
 }
 
 @plugin "daisyui/theme" {
   name: "dark";
 
-  --color-primary: #212638;
-  --color-primary-content: #f9fbff;
-  --color-secondary: #323f61;
-  --color-secondary-content: #f9fbff;
-  --color-accent: #4969a6;
-  --color-accent-content: #f9fbff;
-  --color-neutral: #f9fbff;
-  --color-neutral-content: #385183;
-  --color-base-100: #385183;
-  --color-base-200: #2a3655;
-  --color-base-300: #212638;
-  --color-base-content: #f9fbff;
-  --color-info: #385183;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  /* Graze Design System - Dark Mode */
+  --color-primary: #4caf50; /* Graze Green (mantido) */
+  --color-primary-content: #121212;
+  --color-secondary: #8bc34a; /* Light Green */
+  --color-secondary-content: #e0e0e0;
+  --color-accent: #ffc107; /* Harvest Gold */
+  --color-accent-content: #121212;
+  --color-neutral: #e0e0e0;
+  --color-neutral-content: #121212;
+  --color-base-100: #1e1e1e; /* Superfície */
+  --color-base-200: #121212; /* Night Soil */
+  --color-base-300: #2c2c2c; /* Bordas escuras */
+  --color-base-content: #e0e0e0;
+  --color-info: #66bb6a; /* Verde claro ao invés de azul */
+  --color-success: #00c853;
+  --color-warning: #ffa000;
+  --color-error: #d32f2f;
 
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
-
+  --radius-field: 0.5rem; /* 8px */
+  --radius-box: 1rem; /* 16px */
   --tt-tailw: 6px;
   --tt-bg: var(--color-primary);
 }
@@ -121,4 +122,399 @@
 .link:hover {
   opacity: 80%;
 }
-  
+
+/* Debug Contracts Styling */
+.bg-sui-base-100 {
+  @apply bg-base-100;
+}
+
+.bg-sui-base-200 {
+  @apply bg-base-200;
+}
+
+.bg-sui-base-300 {
+  @apply bg-base-300;
+}
+
+/* Melhorar aparência dos cards de contrato */
+[class*="grid grid-cols"] > div[class*="col-span"] {
+  @apply rounded-2xl;
+}
+
+/* Estilizar inputs do debug - Remove azul e usa cores do Graze */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  @apply transition-all duration-200 border-base-300;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  @apply ring-2 ring-primary/50 border-primary outline-none;
+}
+
+/* Remove qualquer cor azul dos inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Estilizar inputs específicos do scaffold-ui */
+.input:focus,
+.input:focus-visible {
+  outline: none !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Botões do debug */
+button[class*="btn"] {
+  @apply transition-all duration-200;
+}
+
+button[class*="btn"]:hover:not(:disabled) {
+  @apply transform scale-105;
+}
+
+/* Cards de função */
+.space-y-1 > div {
+  @apply transition-all duration-200;
+}
+
+.space-y-1 > div:hover {
+  @apply bg-base-200;
+}
+
+/* Remove cores azuis de links e elementos interativos */
+a:focus-visible,
+button:focus-visible {
+  outline-color: var(--color-primary) !important;
+}
+
+/* Garante que badges e tags usem cores do tema */
+.badge-info {
+  background-color: var(--color-info) !important;
+  color: var(--color-base-100) !important;
+}
+
+/* Sobrescreve qualquer azul do RainbowKit ou outros componentes */
+[class*="blue"],
+[style*="rgb(59, 130, 246)"],
+[style*="#3b82f6"],
+[style*="rgb(34, 153, 221)"],
+[style*="#2299dd"] {
+  color: var(--color-primary) !important;
+  background-color: transparent !important;
+}
+
+/* Estilos específicos para Debug Contracts - FORÇA VERDE EM TUDO */
+.debug-contracts input,
+.debug-contracts textarea,
+.debug-contracts select,
+input[class*="input"],
+textarea[class*="textarea"] {
+  border-color: var(--color-base-300) !important;
+}
+
+.debug-contracts input:focus,
+.debug-contracts textarea:focus,
+.debug-contracts select:focus,
+input[class*="input"]:focus,
+textarea[class*="textarea"]:focus {
+  border-color: var(--color-primary) !important;
+  outline-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Remove azul de links no debug */
+.debug-contracts a,
+.debug-contracts a:hover,
+.debug-contracts a:focus {
+  color: var(--color-primary) !important;
+}
+
+/* Sobrescreve cores do scaffold-ui debug-contracts */
+[class*="sui-"] input:focus,
+[class*="sui-"] textarea:focus,
+[class*="sui-"] select:focus,
+[class*="sui-"] input,
+[class*="sui-"] textarea,
+[class*="sui-"] select {
+  border-color: var(--color-primary) !important;
+  outline-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Remove TODOS os azuis de inputs - força bruta */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  --tw-ring-color: rgb(76, 175, 80) !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus,
+select:focus {
+  --tw-ring-color: rgb(76, 175, 80) !important;
+  border-color: rgb(76, 175, 80) !important;
+  outline-color: rgb(76, 175, 80) !important;
+}
+
+/* Sobrescreve especificamente inputs do scaffold-ui */
+.sui-input,
+.sui-textarea,
+.sui-select,
+[data-theme] input,
+[data-theme] textarea,
+[data-theme] select {
+  --tw-ring-color: rgb(76, 175, 80) !important;
+}
+
+.sui-input:focus,
+.sui-textarea:focus,
+.sui-select:focus,
+[data-theme] input:focus,
+[data-theme] textarea:focus,
+[data-theme] select:focus {
+  --tw-ring-color: rgb(76, 175, 80) !important;
+  border-color: rgb(76, 175, 80) !important;
+  outline-color: rgb(76, 175, 80) !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2) !important;
+}
+
+/* Remove qualquer azul de botões e badges */
+button[class*="info"],
+.badge-info,
+[class*="text-blue"],
+[class*="bg-blue"],
+[class*="border-blue"] {
+  color: var(--color-primary) !important;
+  background-color: var(--color-info) !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* Simple header fix */
+header.navbar {
+  display: flex !important;
+  width: 100% !important;
+}
+
+/* Force grid layouts to work correctly on desktop */
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .lg\:col-span-2 {
+    grid-column: span 2 / span 2 !important;
+  }
+
+  .lg\:col-span-1 {
+    grid-column: span 1 / span 1 !important;
+  }
+}
+
+/* Previne quebra do layout ao navegar */
+main {
+  min-height: calc(100vh - 4rem) !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+}
+
+/* Estabiliza o container principal */
+body {
+  overflow-x: hidden !important;
+  position: relative !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html,
+body {
+  width: 100% !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Força reset de estilos ao navegar */
+* {
+  box-sizing: border-box !important;
+}
+
+/* Container principal do app */
+body > div,
+body > div > div {
+  width: 100% !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+/* Previne que elementos flutuem incorretamente */
+.navbar-start,
+.navbar-end {
+  position: relative !important;
+}
+
+/* Garante que o header não duplique */
+header.navbar ~ header.navbar {
+  display: none !important;
+}
+
+/* FORÇA BRUTAL: Remove qualquer estilo que possa quebrar */
+.flex.flex-col.min-h-screen {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+/* Garante que links não quebrem o layout */
+header.navbar a {
+  display: flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  flex-shrink: 0 !important;
+}
+
+/* Garante que imagens não quebrem */
+header.navbar img {
+  flex-shrink: 0 !important;
+  object-fit: contain !important;
+}
+
+/* FIX CRÍTICO: Corrige erro de hidratação do scaffold-ui debug contracts */
+/* O scaffold-ui tem <div> dentro de <p> que causa hydration error */
+
+/* Força TODOS os parágrafos a se comportarem como divs */
+p {
+  display: block !important;
+  margin: 0 !important;
+}
+
+/* Permite divs dentro de p sem quebrar o layout */
+p > div,
+p > span > div,
+p div {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Específico para debug contracts */
+.debug-contracts p,
+.debug-contracts p > *,
+.debug-contracts p div {
+  display: block !important;
+}
+
+/* Força o componente Contract do scaffold-ui a não quebrar */
+[class*="sui-"] p,
+[class*="sui-"] p > div {
+  display: block !important;
+}
+
+/* Remove qualquer estilo que cause o layout mobile incorreto */
+@media (min-width: 1024px) {
+  .lg\:w-1\/2 {
+    width: 50% !important;
+  }
+
+  .lg\:flex {
+    display: flex !important;
+  }
+
+  .lg\:hidden {
+    display: none !important;
+  }
+}
+
+/* Ensure only one logo shows at a time - CUSTOM CLASSES */
+@media (max-width: 1023px) {
+  .desktop-logo,
+  .desktop-menu {
+    display: none !important;
+  }
+
+  .mobile-logo {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-logo,
+  header.navbar .dropdown {
+    display: none !important;
+  }
+
+  .desktop-logo,
+  .desktop-menu {
+    display: flex !important;
+  }
+}
+
+/* FORÇA MÁXIMA: Remove QUALQUER vestígio de azul em todo o app */
+*[class*="text-info"],
+*[class*="bg-info"],
+*[class*="border-info"] {
+  color: var(--color-primary) !important;
+  background-color: var(--color-info) !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* Sobrescreve cores inline de azul */
+*[style*="color: rgb(59, 130, 246)"],
+*[style*="color: #3b82f6"],
+*[style*="color: blue"],
+*[style*="background-color: rgb(59, 130, 246)"],
+*[style*="background-color: #3b82f6"],
+*[style*="border-color: rgb(59, 130, 246)"],
+*[style*="border-color: #3b82f6"] {
+  color: var(--color-primary) !important;
+  background-color: transparent !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* Força ring color verde em TODOS os elementos focáveis */
+*:focus-visible {
+  --tw-ring-color: rgb(76, 175, 80) !important;
+  outline-color: rgb(76, 175, 80) !important;
+}
+
+/* Sobrescreve DaisyUI info color */
+.text-info {
+  color: var(--color-primary) !important;
+}
+
+.bg-info {
+  background-color: var(--color-info) !important;
+}
+
+.border-info {
+  border-color: var(--color-primary) !important;
+}
+
+/* Remove azul de badges e alerts */
+.alert-info {
+  background-color: var(--color-info) !important;
+  color: var(--color-base-100) !important;
+  border-color: var(--color-primary) !important;
+}

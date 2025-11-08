@@ -1,0 +1,54 @@
+# =============================================================================
+# VARIÁVEIS DE AMBIENTE PARA VERCEL - GRAZE
+# =============================================================================
+# Cole estas variáveis no painel da Vercel (Settings > Environment Variables)
+# Selecione: Production, Preview e Development
+
+# -----------------------------------------------------------------------------
+# ALCHEMY API (JÁ CONFIGURADO)
+# -----------------------------------------------------------------------------
+NEXT_PUBLIC_ALCHEMY_API_KEY=8fPGaJqRo5lgdymlTvD6B
+
+# -----------------------------------------------------------------------------
+# WALLET CONNECT (VOCÊ PRECISA OBTER)
+# -----------------------------------------------------------------------------
+# Obtenha em: https://cloud.walletconnect.com
+# 1. Crie uma conta
+# 2. Crie um novo projeto
+# 3. Copie o "Project ID"
+# 4. Cole abaixo:
+NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=COLE_SEU_PROJECT_ID_AQUI
+
+# =============================================================================
+# INSTRUÇÕES PARA VERCEL:
+# =============================================================================
+# 
+# 1. Acesse: https://vercel.com/new
+# 2. Conecte seu repositório GitHub
+# 3. Configure o projeto:
+#    - Framework Preset: Next.js
+#    - Root Directory: packages/nextjs
+#    - Build Command: yarn build
+#    - Output Directory: .next
+# 
+# 4. Adicione as variáveis de ambiente:
+#    - Vá em Settings > Environment Variables
+#    - Adicione cada variável acima
+#    - Selecione: Production, Preview e Development
+#    - Clique em "Save"
+# 
+# 5. Deploy:
+#    - Clique em "Deploy"
+#    - Aguarde o build terminar
+# 
+# =============================================================================
+# IMPORTANTE:
+# =============================================================================
+# 
+# ⚠️ ANTES DE FAZER DEPLOY NA VERCEL:
+# 
+# 1. Obtenha o WalletConnect Project ID (obrigatório)
+# 2. Certifique-se de que os contratos estão deployados na Base Sepolia
+# 3. Verifique se o arquivo deployedContracts.ts está atualizado
+# 
+# =============================================================================
