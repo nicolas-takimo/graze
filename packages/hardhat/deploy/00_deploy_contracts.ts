@@ -13,7 +13,7 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
   const { network } = hre;
 
   const deployerSigner = await hre.ethers.getSigner(deployer);
-  console.log(`🏃 Starting deploy on ${network.name} with account:`, deployer);
+  console.log(⁠ 🏃 Starting deploy on ${network.name} with account: ⁠, deployer);
 
   // =================================================================
   // --- DEPLOY NA BASE SEPOLIA OU LOCALHOST (Ativos Reais, Vault, Ponte) ---
@@ -34,16 +34,9 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
     const agroAssetDeployment = await deploy("AgroAsset", { from: deployer, args: [], log: true });
     console.log("✅ AgroAsset (AGRO) deployed to:", agroAssetDeployment.address);
 
-    // 3. VaultManager (precisa de um Price Feed)
-    // NOTA: Base Sepolia pode não ter Chainlink Price Feed ativo
-    // Usando Mock Price Feed para garantir funcionamento
-    const mockPriceFeedDeployment = await deploy("MockPriceFeed", {
-      from: deployer,
-      args: [300000000000, 8], // $3000 com 8 decimais
-      log: true,
-    });
-    const priceFeedAddress = mockPriceFeedDeployment.address;
-    console.log(`ℹ️ Using Mock Chainlink Price Feed: ${priceFeedAddress}`);
+    // 3. VaultManager 
+    const priceFeedAddress = 0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1; //Endereço priceFeed Chainlink
+    console.log(⁠ ℹ️ Using Chainlink Price Feed: ${priceFeedAddress} ⁠);
 
     const vaultManagerDeployment = await deploy("VaultManager", {
       from: deployer,
@@ -78,7 +71,7 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
 
     if (currentOwner.toLowerCase() === deployer.toLowerCase()) {
       // 1. Se o dono ainda for o deployer, transfere.
-      console.log(`Transferring StableToken ownership to VaultManager (${vaultManagerAddress})...`);
+      console.log(⁠ Transferring StableToken ownership to VaultManager (${vaultManagerAddress})... ⁠);
       const tx = await stableToken.transferOwnership(vaultManagerAddress);
       await tx.wait();
       console.log("🎉 StableToken ownership transferred to VaultManager!");
@@ -88,7 +81,7 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
     } else {
       // 3. Se for um dono desconhecido (acontece se o VaultManager for reimplantado)
       console.warn(
-        `🚨 StableToken is owned by an unknown address (${currentOwner}). Não é possível transferir a posse.`,
+        ⁠ 🚨 StableToken is owned by an unknown address (${currentOwner}). Não é possível transferir a posse. ⁠,
       );
     }
 
@@ -121,7 +114,7 @@ const deployContracts: DeployFunction = async function (hre: HardhatRuntimeEnvir
     // mas para um hackathon, o deployer ser o 'owner' de tudo é mais fácil)
     console.log("🎉 Zama contracts deployed! Admin (deployer) is the owner of wrapped tokens.");
   } else {
-    console.warn(`🚨 No deploy script configured for network: ${network.name}. Skipping...`);
+    console.warn(⁠ 🚨 No deploy script configured for network: ${network.name}. Skipping... ⁠);
   }
 };
 
